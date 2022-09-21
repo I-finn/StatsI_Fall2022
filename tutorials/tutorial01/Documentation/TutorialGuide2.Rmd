@@ -1,0 +1,93 @@
+---
+title: "Tutorial Guide for Stats I Wk 2"
+author: "Martyn Egan"
+date: "2022-09-21"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r hypothesis testing, echo = FALSE}
+x.range <- seq(-4, 4, by=0.0001)
+x1.range <- seq(-3, 5, by=0.0001)
+sd.range <- seq(-3, 3, 1)
+plot(x.range, dnorm(x=x.range, mean=0, sd=1), 
+     type="l",                                        
+     main="Hypothesis Testing",
+     ylab="density",
+     xlab = "",
+     lwd=2,
+     xaxt="n")
+lines(x1.range, dnorm(x=x1.range, mean = 1, sd = 1), col = "red")
+segments(sd.range, 0, sd.range, dnorm(sd.range, 0, 1), 
+         lty = "dashed")
+axis(1, at=-3:3, labels=-3:3)
+```
+
+## Learning Outcomes
+
+Today we will revise last week's R skills and add a couple more, including:
+
+1. How to transform a vector from one class to another.
+2. How to group our data according to a variable, and then analyse.
+3. How to use the `t.test()` function to test a null hypothesis.
+
+We will also revise our data science skills, and add a few more, including:
+
+1. Working with github (forking a repository).
+2. Working with git in R Studio (cloning a github repository).
+3. Using Latex with R.
+
+Finally, we will be revising the important statistical concept of hypothesis testing, and using a t test to decide whether our male and female height data come from separate distributions.
+
+## Revisiting last week's project: How tall are people?
+
+Last week we did a lot: we formulated a research question, gathered some data from a sample, input this into R, and then analysed it using some fairly simple code. 
+
+This week we're going to explore the data a little further, and ask a more refined question than simply "How tall are people?": we will ask, "Are men and women different heights?"
+
+Last week we were interested in a *single* statistic (the mean), and using how it varied in our sample to determine a confidence interval. This week we're interested in *two* statistics (two means), and determining whether or not they come from the same distribution. To do this, we use a very similar procedure to that for establishing a confidence interval for a single mean: we use the standard error of the sampling distributions, and a t test. 
+
+The plot at the top of the page gives an idea of the theory: if the black line represents one distribution, and the red line another, how far away from each other do the two need to be before we can be sure that they are really *different*? In true statistical fashion, we set the burden quite high, and we also begin with an assumption that there is *no difference* between the two. This is known as the null hypothesis. In statistics, all we are doing is trying to reject the null hypothesis that there is no difference.
+
+## Today's workflow
+
+In order to achieve our goals today we will:
+
+1. Check our files are up to date with the main repository.
+2. Perform necessary wrangling of our data to compare male and female samples.
+3. Test our null hypothesis using a t test.
+4. Write up our results (including from last week).
+
+We will also go through the steps you will need to take to do your first assignment, including:
+
+5. Forking a repository on github.
+6. Cloning a repository to your own system using R Studio.
+7. Using Latex with R.
+
+# Step 1.
+
+Our repository has moved from last week: this week's files are now stored within the Stats I repository on github. You can find the webpage [here](https://github.com/ASDS-TCD/StatsI_Fall2022). 
+
+By now you should have a github account. If you have not already done so, *fork* the Stats I repository to your own github account. You will need to *sync* your fork to keep it up-to-date.
+
+Once you have updated your fork, you have three options:
+
+1. Download [github desktop](https://desktop.github.com/) and use this application to keep repositories on your computer up-to-date with your github account.
+2. Download [git](https://git-scm.com/) and use the *command line* to *clone* the repository on your github account in the directory you wish to keep it. Use the command `git clone URL`, where `URL` is the web address of your forked repository.
+
+Once you have updated your repository, open the `Tutorial1.proj` file. You should now have access to all necessary files in the `Files` tab in the bottom right-hand window.
+
+# Step 2.
+
+Open the `Analysis.R` script. We will work through the new code on hypothesis testing. 
+
+# Step 3.
+
+Now we've completed the analysis, open the `Results.Rmd` markdown file in the `Results` directory, and write up your results.
+
+# Step 4.
+
+For the final part of class, let's look at how to do the assignment using Latex and github. Navigate to the `tutorial02` directory on your computer. If you have not already done so, you will need to install [Latex](https://www.latex-project.org/get/) and [TexStudio](https://www.texstudio.org/).

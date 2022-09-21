@@ -1,0 +1,52 @@
+---
+title: "Add a Title Here"
+author: "Your Name Here"
+date: "2022-09-14"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "..")
+```
+
+## Introduction
+
+Give a brief introduction of the research question(s), and how you will answer them.
+
+## Data
+
+Import here the data and describe it. Include in the chunk below a brief summary
+
+```{r data, echo = FALSE}
+# copy paste the code to import the data
+data <- read.csv("Data/height.csv")
+#knitr::kable() #try to copy and paste here a relevant line of code as 
+# an argument to the kable() function.
+```
+
+## Analysis
+
+Describe how we analysed the data. You might wish to add a snippet of code within your analysis, such as `r round(mean(data$height), 2)`. 
+
+Include below a relevant visualisation for the mean. 
+
+```{r data visualisation, echo = FALSE}
+
+```
+
+Let's also include some analysis of whether men and women are, on average, of different heights. We might add the output of the t test in a chunk
+
+```{r t test}
+
+```
+
+And also a visualisation - the box plot would be good here.
+
+```{r box plot, echo = FALSE}
+
+```
+
+## Conclusion
+
+Add a few words in conclusion. What weaknesses might there be in your research? What further questions might you answer?
