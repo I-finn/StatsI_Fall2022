@@ -1,0 +1,121 @@
+---
+title: "Tutorial Guide for Stats I Wk 1"
+author: "Martyn Egan"
+date: "2022-09-14"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, standard normal, echo=FALSE}
+x.range <- seq(-4, 4, by=0.0001)                       
+sd.range <- seq(-3, 3, 1)
+plot(x.range, dnorm(x=x.range, mean=0, sd=1), 
+     type="l",                                        
+     main="The Standard Normal Distribution (mean=0, sd=1)",
+     ylab="density",
+     xlab = "",
+     lwd=2,
+     xaxt="n")
+segments(sd.range, 0, sd.range, dnorm(sd.range, 0, 1), 
+         lty = "dashed")
+axis(1, at=-3:3, labels=-3:3)
+```
+
+## Learning Outcomes
+
+Today we will learn a few basics in R, including:
+
+1. How to create vectors, and how to create a `data.frame` from vectors.
+2. How to save data we created in R.
+3. How to visualise continuous data using histograms.
+4. How to use built-in functions to work with distributions.
+
+We will also learn a few data science skills, including:
+
+1. How to ask a research question and gather data.
+2. How to organise files in a project.
+3. How to write up our results.
+
+And we will revise a few important statistical concepts:
+
+1. Samples, distributions and sampling distributions.
+2. Inference, and confidence intervals.
+3. Checking assumptions about distributions.
+
+## Today's project: How tall are people?
+
+Statistics enables us to make generaliseable claims about certain characteristics, and to also quantify the degree of certainty or confidence which we have about those claims. We do so by making *inferences* about *populations* from *samples*.
+
+Height could be one such characteristic. Everyone has a height. It is therefore *distributed* throughout the population. By extension, characteristics which are distributed have *distributions*. We can think of the distribution of a particular *variable* (simply, a thing that varies) as the shape which the data present when we visualise them in a histogram: the horizontal, or x axis, represents the value of the variable, and the vertical, or y axis, represents the number of observations we find for that variable. 
+
+In fact, histograms give us 'binned' values, which is to say that for a *continuous* variable such as height, where we can make an infinitely precise measurement, in order to make a histogram we first have to 'bin' all our data into equal sized containers (for instance, groups of 5cm intervals).
+
+Our task today is to see what kind of distribution height might take, and to try to make a general statement about how tall people are. To do so, the only data we have available are our own heights. Today, we are the sample, and we must make an *inference* from the distribution of height among ourselves to the general population.
+
+## Today's workflow
+
+In order to answer these questions we must follow a number of steps: 
+
+1. Formulate our research question(s).
+2. Gather our data.
+3. Import our data into R.
+4. Inspect and visualise our data.
+5. Analyse our data.
+6. Report our results.
+
+In keeping with the workflow we introduced in code camp, today's tutorial project has been divided into a number of directories. 
+
+`Documentation` is where we keep relevant information regarding the project and any data we use. This `html` file is stored in `documentation`, as well as the markdown file used to generate it. `Code` is where we keep any R scripts we use, which we might divide into different parts of the workflow. `Data` is where we keep our data once we've generated it. `Results` is where we will store our completed analysis - perhaps the output of a markdown file, or the pdfs of our visualisations.
+
+This is not the only possible method for organising our project, but it can be a powerful way of keeping on top of our workflow, and ensuring our analysis is *reproducible*. We might also use `git`, a version control system, to keep track of our various files and the work we have done on them, though this is not necessary for today's class.
+
+# Step 1.
+
+The first step is to formulate our research question and gather our data.
+
+# Step 2.
+
+Next, we will import our data into R. We will have to do this manually, but a script has been prepared for you in the `Code` directory, `MakeData.R`. There is also a *code book* for the corresponding data, `CodeBook.Rmd`, stored in `documentation`. We need to open both and edit them accordingly.
+
+# Step 3.
+
+Now that we have imported our data into R and created a code book which appropriately describes the dataset, we can begin to analyse it. The `Analysis.R` script in the `Code` directory has been created to allow us to do this. The first lines of code import the data. The second provide basic functions for exploring the data. The third provide code for visualising the distribution of the `height` variable. What is the difference between the two plots?
+
+# Step 4.
+
+Sometimes we want to know if our data are *normally distributed*. The *normal distribution* is a *family* of distributions, in which most observations are found in the middle of the range, and gradually fewer at either end (or 'tail'), of the distribution. Specifically, in a normal distribution 68 percent of the data lie within one *standard deviation* of the mean, and 95 percent within two standard deviations. Is `height` normally distributed? How do we tell?
+
+## QQ plots
+
+A QQ plot is used to visualise how close a sample distribution is to a specified distribution, in this case the normal distribution. 
+
+```{r qqplot, echo = FALSE}
+unif_samp <- runif(100)
+norm_samp <- rnorm(100)
+
+qqnorm(unif_samp,
+       main = "QQ plot of uniformly distributed sample")
+qqline(unif_samp,
+       distribution = qnorm)
+qqnorm(norm_samp,
+       main = "QQ plot of normally distributed sample")
+qqline(norm_samp,
+       distribution = qnorm)
+```
+
+A QQ plot compares two distributions by plotting their *quantiles* against each other. Typically, the variable being "tested" is plotted on the y axis. The x axis represents the expected distribution. If the points fall roughly along the diagonal line, their distributions match. 
+
+In the plots above, the first plot shows a sample drawn randomly from a *uniform* distribution (imagine a coin toss, or a dice throw). As expected, they do not meet the expectations of the normal distribution, and fall way from the diagonal slope. The second plot however shows a sample drawn randomly from the normal distribution: observations more closely match the diagonal slope. 
+
+# Step 5.
+
+Our goal is to draw an inference from our sample: that is, we want to use our sample to make a statement about an *unobserved* population. During the lecture, you learned the difference between the *population mean*, $\mu$, and the sample mean $\bar{x}$. You also learned the difference between the standard deviation of the population, $\sigma$, the standard deviation of the sample, $s_x$, and the *standard error*, $\sigma_\bar{x}$. Keeping track of these differences can be confusing, so we'll recap using another script file, `Inference.R`, and our data.
+
+After recapping, we'll run the remaining code in `Analysis.R` to calculate our confidence intervals. We have code for a normal distribution (a z test), and a t distribution (a t test).
+
+# Step 6.
+
+The last step is to report our findings. A markdown file, `Results.Rmd` has been prepared in the `Results` directory. Copy and paste the relevant code from `Analysis.R` into the appropriate code chunks in `Results.Rmd`, and add appropriate commentary.

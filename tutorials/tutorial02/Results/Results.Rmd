@@ -1,0 +1,78 @@
+---
+title: "Comparing heights of male and female students"
+author: "Imelds"
+date: "2022-09-21"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "..")
+library(tidyverse) # load our packages here
+```
+
+## Introduction
+
+Investigation of the distribution of heights of male and female TCD post-graduate students.
+Analysing to see if male and female heights differ significantly.
+
+## Data
+
+Data was a small sample (only 33 observations).
+
+Data is collected face-to-face, but self-reported and not verified.  Height was recorded to nearest cm.  Sex was recorded as 0  = male, 1 = female.  No other options were given.
+
+
+Import here the data and describe it. Include in the chunk below a brief summary
+
+```{r data, echo = FALSE} 
+# echo = FALSE doesn't show code, does show output
+# copy paste the code to import the data
+
+
+data <- read.csv("Data/height.csv")
+knitr::kable(head(data)) #try to copy and paste here a relevant line of code as 
+# an argument to the kable() function.
+```
+
+## Analysis
+
+Describe how we analysed the data. You might wish to add a snippet of code within your analysis, such as `r round(mean(data$height), 2)`. 
+
+Include below a relevant visualisation for the mean. 
+
+```{r data visualisation, echo = FALSE}
+data$sex_f <- as.factor(data$sex) # Convert to factor - add a new column to data frame
+levels(data$sex_f) <- c("M", "F") # Change the levels
+
+data %>% # Tidyverse method for grouping
+  group_by(sex_f) %>%
+  summarise(mean = mean(height))
+
+# Visualise
+
+# can see eg that no crossover in interquartile ranges
+boxplot(data$height ~ data$sex_f, # here we use formula notation to group
+        main = "Boxplot of Height by Sex",
+        ylab = "cm",
+        xlab = "")
+
+
+
+```
+
+Let's also include some analysis of whether men and women are, on average, of different heights. We might add the output of the t test in a chunk
+
+```{r t test}
+
+```
+
+And also a visualisation - the box plot would be good here.
+
+```{r box plot, echo = FALSE}
+
+```
+
+## Conclusion
+
+Add a few words in conclusion. What weaknesses might there be in your research? What further questions might you answer?
