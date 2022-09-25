@@ -1,0 +1,14 @@
+---
+title: "`height` codebook"
+---
+
+# Description
+
+The data were collected in 2022 from a sample of students enrolled on the ASDS programme at Trinity College, Dublin, and comprise a variable for height and sex.
+
+# Format
+
+A .csv file with 33 observations on 2 (numeric) variables.
+
+| [,1] `height` &nbsp;&nbsp; centimetres
+| [,2] `sex` &nbsp;&nbsp; 0 = ?, 1 = ?
