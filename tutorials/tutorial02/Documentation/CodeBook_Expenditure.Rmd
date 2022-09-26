@@ -1,0 +1,22 @@
+---
+title: "`height` codebook"
+---
+
+# Description
+
+Researchers are curious about what affects the amount of money communities spend on
+addressing homelessness. The following variables constitute our data set about social welfare
+expenditures in the USA.
+
+# Format
+
+A .txt with 50 observations of 6 variables.
+
+| [,1] `STATE` &nbsp;&nbsp; 50 states in US, 2 character code
+| [,2] `Y` &nbsp;&nbsp; per capita expenditure on shelters/housing assistance in state, $
+| [,3] `X1` &nbsp;&nbsp; per capita personal income in state, $
+| [,4] `X2` &nbsp;&nbsp; Number of residents per 100,000 that are "financially insecure" in state
+| [,5] `X3` &nbsp;&nbsp; Number of people per thousand residing in urban areas in state
+| [,6] `Region` &nbsp;&nbsp; 1=Northeast, 2= North Central, 3= South, 4=West
+
+

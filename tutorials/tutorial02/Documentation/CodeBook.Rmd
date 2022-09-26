@@ -1,14 +1,14 @@
 ---
-title: "`height` codebook"
+title: "`iq` codebook"
 ---
 
 # Description
 
-The data were collected in 2022 from a sample of students enrolled on the ASDS programme at Trinity College, Dublin, and comprise a variable for height and sex.
+A school counselor was curious about the average of IQ of the students in her school and
+took a random sample of 25 students' IQ scores.
 
 # Format
 
-A .csv file with 33 observations on 2 (numeric) variables.
+A .csv file with 25 observations on 1 (numeric) variable.
 
-| [,1] `height` &nbsp;&nbsp; centimetres
-| [,2] `sex` &nbsp;&nbsp; 0 = ?, 1 = ?
+| [,1] `IQ` &nbsp;&nbsp; unknown scale

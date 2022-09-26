@@ -49,7 +49,15 @@ write.csv(iqData,
 summary(iqData)
 str(iqData)
 head(iqData)
+meanIQ <- c()
+for (i in 1:1000) {
+  meanIQ[i] <- mean(sample(iqData, 20, replace=TRUE))
+}
+mean(meanIQ)
+summary(meanIQ)
 
+plot(meanIQ) +
+  plot(iqData, col = "red")
 
 # Visualise
 hist(iqData,
@@ -176,25 +184,152 @@ t.test( iqData  , # sample data
 #####################
 # Problem 2
 #####################
+# function to save output to a file that you can read in later to your docs
+output_stargazer <- function(outputFile, appendVal=TRUE, ...) {
+  output <- capture.output(stargazer(...))
+  cat(paste(output, collapse = "\n"), "\n", file=outputFile, append=appendVal)
+}
 
 # read in expenditure data
 #expenditure <- read.table("https://raw.githubusercontent.com/ASDS-TCD/StatsI_Fall2022/main/datasets/expenditure.txt", header=T)
 expenditure <- read.table("../../datasets/expenditure.txt", header=T)
 
-# create scatterplot of Y and X1 
-pdf("plot_example.pdf")
-plot(expenditure$X1, expenditure$Y)
-dev.off() # close plot...pdf, so can view it
+# State 50 states in US
+#Y per capita expenditure on shelters/housing assistance in state
+#X1 per capita personal income in state
+#X2 Number of residents per 100,000 that are "financially insecure" in state
+#X3 Number of people per thousand residing in urban areas in state
+#Region 1=Northeast, 2= North Central, 3= South, 4=West
+data_headers <- c("State", "$ExpenditurePC", "$IncomePC", "FInsecureResidents", 
+             "UrbanResidents", "Region")
+regions <- c("Northeast","North Central", "South", "West")
+names(expenditure)
+
+# Inspect the data
 head(expenditure)
+str(expenditure)
+summary(expenditure)
+
+#investigate spending on Housing assistance
+
+# Visualise
+hist(expenditure$Y,
+     #breaks = 12,
+     main = "Histogram of spending on HA ",
+     xlab = "$, per capita"
+)
+
+plot(density(expenditure$Y),
+     main = "PDF of spending on HA ",
+     xlab = "$, per capita"
+)
+
+qqnorm(expenditure$Y)
+qqline(expenditure$Y,
+       distribution = qnorm)
+
+
+# create plots of Y and Xn 
+onefile <- TRUE
+#pdf( file = if(onefile) "expenditure_plots.pdf" else "expenditure_plots%03d.pdf")
+#pdf("plot_example.pdf" )
+
+ggplot(expenditure) +
+  geom_point(aes( Y, X1), colour = "blue") +
+  geom_smooth(aes( Y, X1))
+
+ggplot(expenditure) +
+  geom_point(aes( Y, X2), colour = "blue") +
+  geom_smooth(aes( Y, X2))
+
+ggplot(expenditure) +
+  geom_point(aes( Y, X3), colour = "blue", ) +
+  geom_smooth(aes( Y, X3), colour = "red")
+
+
+ggplot(expenditure) +
+  geom_point(aes( STATE, Y), colour = "green") +
+  geom_point(aes( STATE, X1), colour = "blue") 
+
+ggplot(expenditure) +
+  geom_point(aes( STATE, X1/Y), colour = "green")
+
+
+ggplot(expenditure) +
+  geom_point(aes( Y, X1), colour = "blue") 
+
+ggplot(expenditure) +
+  geom_point(aes( Y, X2), colour = "green") 
+
+ggplot(expenditure) +
+  geom_point(aes( Y, X3)) +
+  geom_smooth(aes( Y, X3))
+
+#main = "Income per capita vs spending on HA "
+ggplot(expenditure) +
+  geom_point(aes( Y, X1), colour = "blue") +
+  geom_smooth(aes( Y, X1))
+
+#dev.off() # close pdf file
+
+
+# regional expenditure on housing assistance
+
+ggplot(expenditure) +
+  geom_point(aes( Y, X2, colour = factor(Region))) +
+  geom_smooth(aes( Y, X2))
+#logarithmic scale
+
+#factor(expenditure$Region) <- regions
+ggplot(expenditure) +
+  geom_point(aes(  Region, Y,colours = factor(Region))) 
+# more spread in r4, least in r2
+
+# can see eg that no crossover in interquartile ranges
+boxplot(expenditure$Y ~ expenditure$Region, # here we use formula notation to group
+        main = "Boxplot of per capita spending on HA by Region",
+        names=regions,
+        ylab = "$",
+        xlab = "")
+
+
+regional_mean_table <-expenditure %>% # Tidyverse method for grouping
+  group_by(Region) %>%
+  summarise(mean = mean(Y))
+
+regional_mean_table <- cbind(regional_mean_table, regions)
+
+output_stargazer("regional_means.tex", regional_mean_table[, -1], appendVal = FALSE)   # file fragment 
+
+ggplot(re_means) + 
+  geom_point(aes(regions, mean, colour = regions), size=3)
+
+# West region has highest per capita mean expenditure on housing assistance
+
+#---------------------------------------------------------------------------
+# look at income vs expenditure on HA, by region
+#factor(expenditure$Region) <- regions
+ggplot(expenditure) +
+  geom_point(aes( Y, X1)) +
+  geom_smooth(aes(Y, X1))
+
+ggplot(expenditure) +
+  geom_point(aes( Y, X1, colour= regions[Region], shape= regions[Region])) 
+
+ggplot(expenditure) +
+  geom_point(aes( Y, X1, colour= regions[Region], shape= regions[Region])) +
+  geom_smooth(aes(Y, X1))
+
+ggplot(expenditure) +
+  geom_point(aes( Y, X1, colour= factor(Region), shape= factor(Region))) +
+  geom_smooth(aes( Y, X1, colour = factor(Region)))
 
 # run an example regression, to show how to save table
-regression1 <- lm(Y~X1, data=expenditure)
-# now save that output to a file that you can read in later to your answers
-# make it easier for when we need to do this again, let's create a function
-output_stargazer <- function(outputFile, ...) {
-  output <- capture.output(stargazer(...))
-  cat(paste(output, collapse = "\n"), "\n", file=outputFile, append=TRUE)
-}
+
+
+lm(Y~X1, data=expenditure)
+lm(Y~X2, data=expenditure)
+lm(Y~X3, data=expenditure)
+
 # execute function and check ls() to make sure it worked
-output_stargazer("regression_output1.tex", regression1)   # file fragment 
 ls()
