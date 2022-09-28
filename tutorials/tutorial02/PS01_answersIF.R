@@ -154,6 +154,14 @@ plot(x.range, dnorm(x=x.range, mean=100, sd=iqsd),
 
 #?t.test
 # Now we run our t test
+
+
+# calc t scores & manually test!!! todo
+
+
+
+
+
 t.test( iqData  ,
        mu = 100, # population mean
        var.equal = TRUE, # The default is FALSE - don't have var for popn
@@ -191,8 +199,8 @@ output_stargazer <- function(outputFile, appendVal=TRUE, ...) {
 }
 
 # read in expenditure data
-#expenditure <- read.table("https://raw.githubusercontent.com/ASDS-TCD/StatsI_Fall2022/main/datasets/expenditure.txt", header=T)
-expenditure <- read.table("../../datasets/expenditure.txt", header=T)
+expenditure <- read.table("https://raw.githubusercontent.com/ASDS-TCD/StatsI_Fall2022/main/datasets/expenditure.txt", header=T)
+#expenditure <- read.table("../../datasets/expenditure.txt", header=T)
 
 # State 50 states in US
 #Y per capita expenditure on shelters/housing assistance in state
@@ -204,6 +212,7 @@ data_headers <- c("State", "$ExpenditurePC", "$IncomePC", "FInsecureResidents",
              "UrbanResidents", "Region")
 regions <- c("Northeast","North Central", "South", "West")
 names(expenditure)
+#colnames(expenditure) <- data_headers
 
 # Inspect the data
 head(expenditure)
@@ -223,6 +232,8 @@ plot(density(expenditure$Y),
      main = "PDF of spending on HA ",
      xlab = "$, per capita"
 )
+
+pairs(~Y + X1 + X2 + X3, expenditure)
 
 qqnorm(expenditure$Y)
 qqline(expenditure$Y,
@@ -299,7 +310,7 @@ regional_mean_table <-expenditure %>% # Tidyverse method for grouping
 
 regional_mean_table <- cbind(regional_mean_table, regions)
 
-output_stargazer("regional_means.tex", regional_mean_table[, -1], appendVal = FALSE)   # file fragment 
+output_stargazer("regional_means.tex", appendVal = FALSE, regional_mean_table[, -1])   # file fragment 
 
 ggplot(re_means) + 
   geom_point(aes(regions, mean, colour = regions), size=3)
@@ -323,6 +334,26 @@ ggplot(expenditure) +
 ggplot(expenditure) +
   geom_point(aes( Y, X1, colour= factor(Region), shape= factor(Region))) +
   geom_smooth(aes( Y, X1, colour = factor(Region)))
+
+
+
+
+ggplot(data = expenditure) + 
+  geom_point(mapping = aes(x = Y, y = X1)) + 
+  facet_wrap(~ Region, nrow = 2)
+
+
+##  try - todo
+mat <- as.matrix(with(expenditure, table(Y, Region)))
+
+
+barplot(height = mat, 
+        beside = TRUE, 
+        legend.text = TRUE,
+        args.legend = list(x = "topleft", 
+                           cex = 0.4, 
+                           box.col = "white"))
+
 
 # run an example regression, to show how to save table
 
