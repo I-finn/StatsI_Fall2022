@@ -1,0 +1,128 @@
+---
+title: "Tutorial Guide for Stats I Wk 3"
+author: "Martyn Egan"
+date: "2022-09-28"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r chi square testing, echo = FALSE}
+x.range <- seq(0, 14, 0.001)
+plot(x.range, dchisq(x.range, df = 3),
+     type = "l",
+     main = "Chi-Square Distribution",
+     xlab = "",
+     ylab = "density",
+     col = "blue")
+lines(x.range, dchisq(x.range, df = 7),
+      col = "red")
+legend(10, 0.2, legend = c("df = 3", "df = 7"),
+       col = c("blue", "red"),
+       lty = 1)
+```
+
+## Learning Outcomes
+
+Today's tutorial will build on our data wrangling skills, and introduce us to working with categorical variables in R, including how to test for statistical significance in the distribution of categorical variables.
+
+In R we will:
+
+1.  Transform variables from one class to another.
+2.  Learn how to use the `table()` function in more detail.
+3.  Learn ways of visualising categorical variables.
+4.  How to perform a chi square test of statistical significance using the `chisq.test()` function.
+
+We will also learn some more data science skills, including:
+
+1.  Improving our data wrangling skills.
+2.  Working with R and Latex together.
+3.  Creating a pdf in Latex and pushing to github.
+
+Finally, we will be revising the importance of the chi square distribution for testing the statistical significance of categorical data.
+
+## Working with Categorical Variables - Going to the Movies
+
+In today's class we will be working with the `movies.csv` dataset, which is also available in the top level directory `datasets` in the `StatsI_Fall2022` github repository.
+
+The `movies.csv` dataset contains 651 observations of 32 variables, including film title, genre, studio, main actors, and variables relating to critical appreciation.
+
+Many of these variables are categorical. It could be that dramas, for instance, consistently receive higher critical appreciation. Yet how do we tell if the distribution of two (or more) categorical variables such as these is statistically significant?
+
+In practice, we work along a similar line of reasoning to a continuous variable. Last week we tested to see if two means - the average heights of men and women in our sample - were drawn from the same distribution, or if they were sufficiently far apart for us to conclude they represented different distributions.
+
+With categorical variables, we work using *contingency tables* to achieve the same goal. Imagine two different categorical variables, for example hair colour and eye colour. In a contingency table, we would list each variable along a margin, and each cell would contain the corresponding number of observations for each pair of categories, e.g. blonde hair and blue eyes, brown hair and brown eyes, etc.
+
+```{r contingency table, echo = FALSE}
+hair <- factor(sample(c("blonde",
+                        "brown",
+                        "black",
+                        "red"), 100, 
+                      replace = TRUE))
+eyes <- factor(sample(c("blue",
+                        "brown",
+                        "green",
+                        "grey"), 100, 
+                      replace = TRUE))
+
+addmargins(table(hair, eyes))
+```
+
+As with the hypothesis test we performed last week, we begin again with a null hypothesis, which is that the distribution of the two categories against each other should be essentially random. In practice, this means:
+
+1. Calculating an expected value for each cell,
+2. Measuring the extent to which the observed value differs from the expected, 
+3. Squaring the result, 
+4. Dividing that by the expected value,
+5. Summing together all these values across the table. 
+
+When we do this we get a single number. If that number exceeds a critical threshold, we reject the null hypothesis. (Note: the expected value for each cell is calculated by multiplying the row total by the column total, then dividing by the grand total. It is not just the average!)
+
+```{r chi square, echo = FALSE}
+chisq.test(table(hair,eyes))
+```
+As with z tests and normal distributions, and t tests and t distributions, the critical threshold we are looking for can once again be visualised in the form of a probability density function (see above). The family of distributions we use for testing a contingency table is called the chi square distribution. It is a skewed distribution (the tail is longer on one side), and the parameter which changes the shape of the distribution is degrees of freedom, just as with the t distribution.
+
+As with a t test, the number we calculated, chi square, is found on the x axis; the corresponding p value is then found on the y axis. If the p value is smaller than our critical threshold (i.e. 0.05 or 0.01), then we reject the null hypothesis. In practice, R calculates this for us, as the output above shows.
+
+As a final note, as with a t test, a chi square test requires the correct degrees of freedom to be known. Typically, R will work this out for us. However, as a rule of thumb, when running a chi square test on a contingency table, the degrees of freedom is the number of rows -1 times the number of columns -1.
+
+## Today's workflow
+
+In order to achieve our goals today we will:
+
+1.  Read in and wrangle our data.
+2.  Explore and visualise our data.
+3.  Perform a chi square test of statistical significance.
+4.  Write up and publish our results in Latex.
+5.  Push our results up to our repository in github.
+
+# Step 1.
+
+First, you will need to update your files: sync your forked repository on github, and then pull any changes to your local system.
+
+Once you have done this, open the `tutorial03.Rproj` file in the `tutorial03` directory. This week, all files are stored in the same directory. Open the `tutorial03.R` script.
+
+# Step 2.
+
+An important skill in wrangling data is to be able to change a column (or vector) from one class or type to another. Here, the `read.csv()` function has read in all character strings "as is". In reality, however, many of these character strings are in fact categorical variables, or logical/dummy vectors (i.e. having two options, TRUE or FALSE). We need to transform these to the right class.
+
+# Step 3.
+
+Next we will focus on how to create contingency tables, and visualise categorical variables using R's base plotting functions.
+
+# Step 4.
+
+The last step in our script is to perform a chi square test of significance on our contingency table.
+
+# Step 5. 
+
+Now that we have completed our analysis in R, we need to present our results in Latex. Open the file `results.tex` in your Latex editor. 
+
+# Step 6.
+
+Our final step is to upload, or *push* our finished results from our own computers back up to github. You can do this using github desktop, R Studio, or git in command prompt. 
+
+Important note: if this final process is not clear to you, please *read carefully* the `github_instructions.pdf` in the `tutorial02` directory. This final step is important for handing in your assignment.

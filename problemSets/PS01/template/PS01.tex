@@ -61,7 +61,7 @@
 \newtheorem{hyp}{Hypothesis}
 
 \title{Problem Set 1}
-\date{Due: October 1, 2021}
+\date{Due: October 3, 2021}
 \author{Applied Stats/Quant Methods 1}
 
 \begin{document}
@@ -71,61 +71,61 @@
 	\begin{itemize}
 		\item Please show your work! You may lose points by simply writing in the answer. If the problem requires you to execute commands in \texttt{R}, please include the code you used to get your answers. Please also include the \texttt{.R} file that contains your code. If you are not sure if work needs to be shown for a particular problem, please ask.
 		\item Your homework should be submitted electronically on GitHub in \texttt{.pdf} form.
-		\item This problem set is due before 8:00 on Friday October 1, 2021. No late assignments will be accepted.
+		\item This problem set is due before 8:00 on Friday October 3, 2021. No late assignments will be accepted.
 		\item Total available points for this homework is 100.
 	\end{itemize}
 	
 	\vspace{1cm}
 	\section*{Question 1 (50 points): Education}
-
-A school counselor was curious about the average of IQ of the students in her school and took a random sample of 25 students' IQ scores. The following is the data set:\\
-\vspace{.5cm}
-
-\lstinputlisting[language=R, firstline=40, lastline=40]{PS01.R}  
-
-\vspace{1cm}
-
-\begin{enumerate}
-	\item Find a 90\% confidence interval for the average student IQ in the school.\\
 	
-	\item Next, the school counselor was curious  whether  the average student IQ in her school is higher than the average IQ score (100) among all the schools in the country.\\ 
+	A school counselor was curious about the average of IQ of the students in her school and took a random sample of 25 students' IQ scores. The following is the data set:\\
+	\vspace{.5cm}
 	
-	\noindent Using the same sample, conduct the appropriate hypothesis test with $\alpha=0.05$.
-\end{enumerate}
-
-\newpage
-
+	\lstinputlisting[language=R, firstline=40, lastline=40]{PS01.R}  
+	
+	\vspace{1cm}
+	
+	\begin{enumerate}
+		\item Find a 90\% confidence interval for the average student IQ in the school.\\
+		
+		\item Next, the school counselor was curious  whether  the average student IQ in her school is higher than the average IQ score (100) among all the schools in the country.\\ 
+		
+		\noindent Using the same sample, conduct the appropriate hypothesis test with $\alpha=0.05$.
+	\end{enumerate}
+	
+	\newpage
+	
 	\section*{Question 2 (50 points): Political Economy}
-
-\noindent Researchers are curious about what affects the amount of money communities spend on addressing homelessness. The following variables constitute our data set about social welfare expenditures in the USA. \\
-\vspace{.5cm}
-
-
-\begin{tabular}{r|l}
-	\texttt{State} &\emph{50 states in US} \\
-	\texttt{Y} & \emph{per capita expenditure on shelters/housing assistance in state}\\
-	\texttt{X1} &\emph{per capita personal income in state} \\
-	\texttt{X2} &  \emph{Number of residents per 100,000 that are "financially insecure" in state}\\
-	\texttt{X3} &  \emph{Number of people per thousand residing in urban areas in state} \\
-	\texttt{Region} &  \emph{1=Northeast, 2= North Central, 3= South, 4=West} \\
-\end{tabular}
-
-\vspace{.5cm}
-\noindent Explore the \texttt{expenditure} data set and import data into \texttt{R}.
-\vspace{.5cm}
-\lstinputlisting[language=R, firstline=54, lastline=54]{PS01.R}  
-\vspace{.5cm}
-\begin{itemize}
-
-\item
-Please plot the relationships among \emph{Y}, \emph{X1}, \emph{X2}, and \emph{X3}? What are the correlations among them (you just need to describe the graph and the relationships among them)?
-\vspace{.5cm}
-\item
-Please plot the relationship between \emph{Y} and \emph{Region}? On average, which region has the highest per capita expenditure on housing assistance?
-\vspace{.5cm}
-\item
-Please plot the relationship between \emph{Y} and \emph{X1}? Describe this graph and the relationship. Reproduce the above graph including one more variable \emph{Region} and display different regions with different types of symbols and colors.
-\end{itemize}
-
-
+	
+	\noindent Researchers are curious about what affects the amount of money communities spend on addressing homelessness. The following variables constitute our data set about social welfare expenditures in the USA. \\
+	\vspace{.5cm}
+	
+	
+	\begin{tabular}{r|l}
+		\texttt{State} &\emph{50 states in US} \\
+		\texttt{Y} & \emph{per capita expenditure on shelters/housing assistance in state}\\
+		\texttt{X1} &\emph{per capita personal income in state} \\
+		\texttt{X2} &  \emph{Number of residents per 100,000 that are "financially insecure" in state}\\
+		\texttt{X3} &  \emph{Number of people per thousand residing in urban areas in state} \\
+		\texttt{Region} &  \emph{1=Northeast, 2= North Central, 3= South, 4=West} \\
+	\end{tabular}
+	
+	\vspace{.5cm}
+	\noindent Explore the \texttt{expenditure} data set and import data into \texttt{R}.
+	\vspace{.5cm}
+	\lstinputlisting[language=R, firstline=54, lastline=54]{PS01.R}  
+	\vspace{.5cm}
+	\begin{itemize}
+		
+		\item
+		Please plot the relationships among \emph{Y}, \emph{X1}, \emph{X2}, and \emph{X3}? What are the correlations among them (you just need to describe the graph and the relationships among them)?
+		\vspace{.5cm}
+		\item
+		Please plot the relationship between \emph{Y} and \emph{Region}? On average, which region has the highest per capita expenditure on housing assistance?
+		\vspace{.5cm}
+		\item
+		Please plot the relationship between \emph{Y} and \emph{X1}? Describe this graph and the relationship. Reproduce the above graph including one more variable \emph{Region} and display different regions with different types of symbols and colors.
+	\end{itemize}
+	
+	
 \end{document}
