@@ -1,0 +1,79 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{listings}
+\author{put your name here}
+\title{Analysis of Movie Genre and Critical Reception}
+\begin{document}
+	\maketitle
+	
+	\section*{Introduction}
+	The dataset {\tt movies.csv} contains 651 observations of different movies across 32 variables. The dataset was edited using the statistical programming language {\tt R} to contain 28 variables, with 6 variables for year, month and day of release at theatres and on DVD collapsed into two date vectors, and other variables coerced to relevant formats (factor for categorical variables, and logical for binary variables). 
+	
+	\section*{Research Question}
+	Do different genres receive varying critical appreciation? It was decided to compare the 5 most prominent movie genres (`Action and Adventure', `Comedy', `Documentary', `Drama', `Mystery and Suspense') with their critical ratings (`Rotten', `Fresh', `Certified Fresh') to determine if there is a statistically significant correlation between the two variables.
+	
+	\section*{Analysis}
+	A preliminary inspection of the data revealed an apparently non-random distribution of critical ratings according to genre. The tables below provide a summary of raw and proportional distributions.
+	\begin{figure}
+			\begin{verbatim}
+	                    critics_rating
+	genre                Rotten Fresh Certified Fresh
+	Action & Adventure     48     9               8
+	Comedy                 63    14              10
+	Documentary             3    32              17
+	Drama                 124   106              75
+	Mystery & Suspense     29    23               7
+			\end{verbatim}
+		\caption{\footnotesize Contingency table}
+	\end{figure}
+	\begin{figure}
+			\begin{verbatim}
+	                    critics_rating
+	genre                Rotten Fresh Certified Fresh
+	Action & Adventure   0.74  0.14            0.12
+	Comedy               0.72  0.16            0.11
+	Documentary          0.06  0.62            0.33
+	Drama                0.41  0.35            0.25
+	Mystery & Suspense   0.49  0.39            0.12
+			\end{verbatim}
+		\caption{\footnotesize Proportion table along rows}
+	\end{figure}
+
+Visualisation of the distribution of the data appears to confirm that certain categories are disproportionately unfavoured by critics.
+
+\begin{figure}[h!]\centering
+	\caption{\footnotesize Bar plot}
+	\includegraphics[width=.75\textwidth]{barplot.png}
+\end{figure} 
+
+Finally, a statistical test was performed on the data using chi square goodness of fit. The code used is detailed below.
+
+\lstinputlisting[language=R, firstline=156, lastline=157]{tutorial03_complete.R}
+
+The results of the test were as follows:
+
+\begin{verbatim}
+	Pearson's Chi-squared test
+
+data:  table(dat_mini$genre, dat_mini$critics_rating)
+X-squared = 86.291, df = 8, p-value = 2.626e-15
+\end{verbatim}
+
+\section*{Conclusion}
+
+In conclusion, we rejected the null hypothesis that critical reception is uncorrelated with movie genre. In particular, we note that Action and Adventure and Comedy are statistically more likely to receive rotten reviews, while documentaries are less likely to receive rotten reviews. Residuals are included below.
+
+\begin{verbatim}
+                       Rotten      Fresh Certified Fresh
+Action & Adventure  3.1560462 -2.6273867      -1.4727857
+Comedy              3.4564262 -2.6716327      -1.8710667
+Documentary        -4.3372636  3.6924745       1.9215101
+Drama              -1.6178245  0.7240656       1.5359432
+Mystery & Suspense  0.2403660  0.8891806      -1.4781878
+\end{verbatim}
+
+\end{document}
