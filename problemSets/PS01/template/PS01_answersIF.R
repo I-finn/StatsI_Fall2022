@@ -25,7 +25,7 @@ pkgTest <- function(pkg){
 }
 
 # load necessary packages
-lapply(c("ggplot2", "stargazer", "tidyverse", "stringr"),  pkgTest)
+lapply(c("ggplot2", "stargazer", "tidyverse", "stringr", "quantreg"),  pkgTest)
 
 # set working directory to current parent folder
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
@@ -39,9 +39,7 @@ iqData <- c(105, 69, 86, 100, 82, 111, 104, 110, 87, 108, 87, 90, 94, 113,
             112, 98, 80, 97, 95, 111, 114, 89, 95, 126, 98)
 
 ## Save our data to a .csv file in the data directory
-write.csv(iqData, 
-          file = "Data/iq.csv",
-          row.names = FALSE)
+write.csv(iqData, file = "Data/iq.csv", row.names = FALSE)
 
 # Explore data
 summary(iqData)
@@ -96,12 +94,12 @@ cat(str_glue("{(1-alphaVal)*100}% Confidence Intervals, two-sided z-test"))
 matrix(c(CI_lower, CI_upper), ncol = 2, 
        dimnames = list("",c("Lower", "Upper")))
 
-# Calculate 90 percent confidence intervals using t-test distribution
+# Calculate 90 percent confidence intervals using t-distribution
 # degrees of freedom = n-1 = 24 - should be >30
 t.val <- qt(alphaVal/2, df = n-1, lower.tail = FALSE)
 
-CI_lower <- iqMean - t.val * iqse 
-CI_upper <- iqMean + t.val * iqse 
+CI_lower <- iqMean - (t.val * iqse) 
+CI_upper <- iqMean + (t.val * iqse)
 
 # calculate using t-test
 cat(str_glue("{(1-alphaVal)*100}% Confidence Intervals, two-sided t-test"))
@@ -146,7 +144,7 @@ matrix(c(testStatistic, n-1, t_pValue  ), ncol = 3,
        dimnames = list("",c("t", "df", "p-value")))
 cat(str_glue("p-value for normal distribution is {round(pValue,3)}"))
 
-
+# check result
 t.test( iqData  ,
        mu = 100, # population mean
        var.equal = TRUE, # The default is FALSE - don't have var for popn
@@ -161,6 +159,10 @@ t.test( iqData  ,
 #####################
 # Problem 2
 #####################
+rm(list=ls())
+# set working directory to current parent folder
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+
 # function to save output to a file that you can read in later to your docs
 output_stargazer <- function(outputFile, appendVal=TRUE, ...) {
   output <- capture.output(stargazer(...))
@@ -168,8 +170,9 @@ output_stargazer <- function(outputFile, appendVal=TRUE, ...) {
 }
 
 # read in expenditure data
-expenditure <- read.table("https://raw.githubusercontent.com/ASDS-TCD/StatsI_Fall2022/main/datasets/expenditure.txt", header=T)
-#expenditure <- read.table("../../datasets/expenditure.txt", header=T)
+#expenditure <- read.table("https://raw.githubusercontent.com/ASDS-TCD/StatsI_Fall2022/main/datasets/expenditure.txt", header=T)
+#write.table(expenditure, "Data/expenditure.txt")
+expenditure <- read.table("Data/expenditure.txt", header=T)
 
 # State 50 states in US
 #Y per capita expenditure on shelters/housing assistance in state
@@ -177,11 +180,12 @@ expenditure <- read.table("https://raw.githubusercontent.com/ASDS-TCD/StatsI_Fal
 #X2 Number of residents per 100,000 that are "financially insecure" in state
 #X3 Number of people per thousand residing in urban areas in state
 #Region 1=Northeast, 2= North Central, 3= South, 4=West
-data_headers <- c("State", "$ExpenditurePC", "$IncomePC", "FInsecureResidents", 
+
+data_headers <- c("State", "ExpenditurePC", "IncomePC", "FInsecureResidents", 
              "UrbanResidents", "Region")
 regions <- c("Northeast","North Central", "South", "West")
 names(expenditure)
-#colnames(expenditure) <- data_headers
+expenditure$RegionName<-regions[expenditure$Region]
 
 # Inspect the data
 head(expenditure)
@@ -189,147 +193,100 @@ str(expenditure)
 summary(expenditure)
 
 #investigate spending on Housing assistance
-
 # Visualise
-hist(expenditure$Y,
-     #breaks = 12,
-     main = "Histogram of spending on HA ",
-     xlab = "$, per capita"
-)
 
-plot(density(expenditure$Y),
-     main = "PDF of spending on HA ",
-     xlab = "$, per capita"
-)
+onefile <- FALSE
+#pdf( file = if(onefile) "expenditure_plots.pdf" else "expenditure_plots%03d.pdf")
 
-pairs(~Y + X1 + X2 + X3, expenditure)
+hist(expenditure$Y, main = "Histogram of spending on HA ", xlab = "$, per capita")
+
+plot(density(expenditure$Y), 
+     main = "PDF of spending on HA ", xlab = "$, per capita")
 
 qqnorm(expenditure$Y)
-qqline(expenditure$Y,
-       distribution = qnorm)
-
-
-# create plots of Y and Xn 
-onefile <- TRUE
-#pdf( file = if(onefile) "expenditure_plots.pdf" else "expenditure_plots%03d.pdf")
-#pdf("plot_example.pdf" )
-
-ggplot(expenditure) +
-  geom_point(aes( Y, X1), colour = "blue") +
-  geom_smooth(aes( Y, X1))
-
-ggplot(expenditure) +
-  geom_point(aes( Y, X2), colour = "blue") +
-  geom_smooth(aes( Y, X2))
-
-ggplot(expenditure) +
-  geom_point(aes( Y, X3), colour = "blue", ) +
-  geom_smooth(aes( Y, X3), colour = "red")
-
-
-ggplot(expenditure) +
-  geom_point(aes( STATE, Y), colour = "green") +
-  geom_point(aes( STATE, X1), colour = "blue") 
-
-ggplot(expenditure) +
-  geom_point(aes( STATE, X1/Y), colour = "green")
-
-
-ggplot(expenditure) +
-  geom_point(aes( Y, X1), colour = "blue") 
-
-ggplot(expenditure) +
-  geom_point(aes( Y, X2), colour = "green") 
-
-ggplot(expenditure) +
-  geom_point(aes( Y, X3)) +
-  geom_smooth(aes( Y, X3))
-
-#main = "Income per capita vs spending on HA "
-ggplot(expenditure) +
-  geom_point(aes( Y, X1), colour = "blue") +
-  geom_smooth(aes( Y, X1))
+qqline(expenditure$Y, distribution = qnorm)
 
 #dev.off() # close pdf file
+#----------------------------------------------------------------------
+# plot the numerical variables against each other
+pdf("expenditure_pairs.pdf" )
+pairs(~Y + X1 + X2 + X3, expenditure, labels = data_headers[2:5])
+dev.off() # close output
 
 
+# look at detail of some relationships
+ggplot(expenditure) +
+  geom_point(aes(X2, Y), colour = "red" ) +
+  geom_smooth(aes(X2, Y), colour = "red") 
+ggsave("y_x2.png", width = 5, height = 5)
+
+
+ggplot(expenditure) +
+  geom_point(aes( X3, Y, ), colour = "blue" ) +
+  geom_smooth(aes( X3, Y), colour = "blue")
+ggsave("y_x3.png", width = 5, height = 5)
+
+#----------------------------------------------------------
 # regional expenditure on housing assistance
-
+# look at plots
+# by state
+x <- seq(1, length(expenditure$Y))
 ggplot(expenditure) +
-  geom_point(aes( Y, X2, colour = factor(Region))) +
-  geom_smooth(aes( Y, X2))
-#logarithmic scale
+  geom_point(aes( x, Y , colour = RegionName))
 
-#factor(expenditure$Region) <- regions
+# grouped by region
 ggplot(expenditure) +
-  geom_point(aes(  Region, Y,colours = factor(Region))) 
+  geom_point(aes(Region, Y,colour = RegionName)) 
+ggsave("region_y.png", width = 5, height = 5)
 # more spread in r4, least in r2
 
-# can see eg that no crossover in interquartile ranges
-boxplot(expenditure$Y ~ expenditure$Region, # here we use formula notation to group
-        main = "Boxplot of per capita spending on HA by Region",
-        names=regions,
-        ylab = "$",
-        xlab = "")
+ggplot(expenditure) +
+  geom_boxplot(aes(Y, RegionName, colour=RegionName), outlier.colour = "black") 
+ggsave("region_boxplot.png", width = 5, height = 5)
 
 
+# calculate regional means
 regional_mean_table <-expenditure %>% # Tidyverse method for grouping
   group_by(Region) %>%
-  summarise(mean = mean(Y))
+  summarise(mean = round(mean(Y), 2))
 
 regional_mean_table <- cbind(regional_mean_table, regions)
 
-output_stargazer("regional_means.tex", appendVal = FALSE, regional_mean_table[, -1])   # file fragment 
-
-ggplot(re_means) + 
-  geom_point(aes(regions, mean, colour = regions), size=3)
+ggplot(regional_mean_table) + 
+  geom_point(aes(regions, mean, colour = regions, shape = regions), size=3)
+ggsave("region_means.png", width = 5, height = 5)
 
 # West region has highest per capita mean expenditure on housing assistance
+
+matrix(regional_mean_table$mean, ncol = 4,
+       dimnames = list("", c(regional_mean_table$regions)))
+cat(str_glue("Highest average pc spending on SHA is ${regional_mean_table[4, 2]} in the West region"))
+
+
+output_stargazer("regional_means.tex", appendVal = FALSE, regional_mean_table,
+                 title="Regional spending on SHA", #column.labels=regional_mean_table$regions,
+                 label="tab:region_mean", summary=FALSE, digits = 2
+                 )   # file fragment 
+
 
 #---------------------------------------------------------------------------
 # look at income vs expenditure on HA, by region
 #factor(expenditure$Region) <- regions
 ggplot(expenditure) +
-  geom_point(aes( Y, X1)) +
-  geom_smooth(aes(Y, X1))
+  geom_point(aes( X1, Y)) +
+  geom_smooth(aes(X1, Y), colour = "black", se=FALSE, size=0.3)
+ggsave("y_x1.png", width = 5, height = 5)
 
 ggplot(expenditure) +
-  geom_point(aes( Y, X1, colour= regions[Region], shape= regions[Region])) 
+  geom_point(aes( X1, Y, colour= RegionName, shape= RegionName)) 
+ggsave("y_x1_region.png", width = 5, height = 5)
 
-ggplot(expenditure) +
-  geom_point(aes( Y, X1, colour= regions[Region], shape= regions[Region])) +
-  geom_smooth(aes(Y, X1))
-
-ggplot(expenditure) +
-  geom_point(aes( Y, X1, colour= factor(Region), shape= factor(Region))) +
-  geom_smooth(aes( Y, X1, colour = factor(Region)))
-
+ggplot(expenditure, ) +
+  geom_point(aes(X1, Y, colour=RegionName), size = 2) +
+  facet_wrap(~ RegionName, nrow = 2) +
+  geom_smooth(aes(X1, Y) , colour = "darkgrey", size = 0.3, se=FALSE)
+ggsave("y_x1_region_facet.png", width = 5, height = 5)
 
 
 
-ggplot(data = expenditure) + 
-  geom_point(mapping = aes(x = Y, y = X1)) + 
-  facet_wrap(~ Region, nrow = 2)
 
-
-##  try - todo
-mat <- as.matrix(with(expenditure, table(Y, Region)))
-
-
-barplot(height = mat, 
-        beside = TRUE, 
-        legend.text = TRUE,
-        args.legend = list(x = "topleft", 
-                           cex = 0.4, 
-                           box.col = "white"))
-
-
-# run an example regression, to show how to save table
-
-
-lm(Y~X1, data=expenditure)
-lm(Y~X2, data=expenditure)
-lm(Y~X3, data=expenditure)
-
-# execute function and check ls() to make sure it worked
-ls()

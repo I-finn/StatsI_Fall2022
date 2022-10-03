@@ -35,11 +35,6 @@
 
 % from lshort.pdf
 \usepackage{verbatim}
-%\usepackage{mathtools}
-%\usepackage[
-%  math-style=ISO, 
-%  warnings-off={mathtools-colon, mathtools-overbracket},
-%  ]{unicode-math}
 
 
 \definecolor{codegreen}{rgb}{0,0.6,0}
@@ -90,16 +85,15 @@
 	\vspace{1cm}
 	\section*{Question 1 (50 points): Education}
 	
-	A school counselor was curious about the average of IQ of the students in her school and took a random sample of 25 students' IQ scores. The following is the data set:\\
+	\emph{A school counselor was curious about the average of IQ of the students in her school and took a random sample of 25 students' IQ scores. The following is the data set:}\\
 	\vspace{.5cm}
 	
 	\lstinputlisting[language=R, firstline=38, lastline=39]{PS01_answersIF.R}  
 	
-	\vspace{1cm}
+	\vspace{.5cm}
 	
 	\begin{enumerate}
-		\item Find a 90\% confidence interval for the average student IQ in the school.\\
-		
+		\item \emph{Find a 90\% confidence interval for the average student IQ in the school.}\\
 		  \begin{verbatim}
 		  # calculate sample statistics
       # capture the number of observations 
@@ -111,11 +105,13 @@
 
       # calculate variance and standard deviation
       iqVar <- sum((iqData - iqMean)^2)/(n-1) 
-      iqSD <-sqrt(iqVar)            
+      iqSD <-sqrt(iqVar)
+      
+      iqse <- iqSD / sqrt(n)         # standard error of sample
       
 		  \end{verbatim}
       
-      The code for the t-test at 90\% is:
+      The code for the t-test at 90\% is:\footnote{t.val = 1.71}
       
       \begin{verbatim}
       t.val <- qt(alphaVal/2, df = n-1, lower.tail = FALSE)
@@ -134,18 +130,20 @@
        \footnote{A Z-test gave a  90\% CI of $94.13 < \mu < 102.75$.}
       
       
-		\item Next, the school counselor was curious  whether  the average student IQ in her school is higher than the average IQ score (100) among all the schools in the country.\\ 
-		\noindent Using the same sample, conduct the appropriate hypothesis test with $\alpha=0.05$.
+		\item \emph{Next, the school counselor was curious  whether  the average student IQ in her school is higher than the average IQ score (100) among all the schools in the country.}\\ 
+		\noindent \emph{Using the same sample, conduct the appropriate hypothesis test with $\alpha=0.05$.}
 		
 		\begin{enumerate}
 		    \item The number of observations is 25, which isn't ideal for t-test statistics
-		    (we would prefer at least 30 observations).  The data isn't random, as all are students from the same school.
+		    (we would prefer at least 30 observations).  The data isn't really random, as all are students from the same school.
 		    
 		    \item H$_0$: the average IQ score in the sample is less than the population average
 		    ie $\mu_O \le \mu$
-		    \item H$\alpha$: the average iq score in the sample is greater than the population average  ie $\mu_O > \mu$
-		    \item Calculate test statistic  \[TS = \frac{\bar{Y}  - \mu_0 }{\sigma_{\bar{Y}}}\]
-		    \item  Calculate p-value \[p = Pr( Z \le - |\frac{\bar{Y}  - \mu_O }{\sigma_{\bar{Y}}} |)\]
+		    \item H$\alpha$: the average IQ score in the sample is greater than the population average  ie $\mu_O > \mu$
+		    \item Calculate test statistic  
+		    \[TS = \frac{\bar{Y}  - \mu_0 }{\sigma_{\bar{Y}}}\]
+		    \item  Calculate p-value 
+		    \[p = Pr( Z \le - |\frac{\bar{Y}  - \mu_O }{\sigma_{\bar{Y}}} |)\]
 		    
 		    \item if p $\le$ $\alpha=0.05$, we reject the null hypothesis
 		    
@@ -153,7 +151,6 @@
 		  
 		  \noindent
 
-      \emph{Code}
 		  \begin{verbatim} 
 
   		  # Test our hypothesis
@@ -170,18 +167,17 @@
 
 		  \end{verbatim} 
 
-      \emph{Results}
+      \textbf{Results}
+
 		  p-value for normal distribution is 0.276
 
-\begin{tabular}{r|r|r}
+      \begin{tabular}{r|r|r}
           t & df  & p-value\\
  -0.5957439 &24 &0.2784617\\
-\end{tabular}
+      \end{tabular}
         The p-value is greater than 5\%, so we cannot reject the null hypothesis. 
         The data does not support the suggestion that the school IQ scores are greater than the 
         population average.
-
-
 
 
 	\end{enumerate}
@@ -192,49 +188,121 @@
 	
 	\noindent Researchers are curious about what affects the amount of money communities spend on addressing homelessness. The following variables constitute our data set about social welfare expenditures in the USA. \\
 	\vspace{.5cm}
-	\begin{comment}
-	\includegraphics[
-width=1.5cm,
-]{example-image-a4-numbered}
-\includegraphics[
-width=1.5cm,
-page=2,
-]{example-image-a4-numbered}
-\includegraphics[
-width=1.5cm,
-page=11,
-]{example-image-a4-numbered}
 
-	\end{comment}
-	
-	
-	
+
 	\begin{tabular}{r|l}
 		\texttt{State} &\emph{50 states in US} \\
 		\texttt{Y} & \emph{per capita expenditure on shelters/housing assistance in state}\\
-		\texttt{X1} &\emph{per capita personal income in state} \\
-		\texttt{X2} &  \emph{Number of residents per 100,000 that are "financially insecure" in state}\\
-		\texttt{X3} &  \emph{Number of people per thousand residing in urban areas in state} \\
-		\texttt{Region} &  \emph{1=Northeast, 2= North Central, 3= South, 4=West} \\
+		\texttt{X1} & \emph{per capita personal income in state} \\
+		\texttt{X2} & \emph{Number of residents per 100,000 that are "financially insecure" in state}\\
+		\texttt{X3} & \emph{Number of people per thousand residing in urban areas in state} \\
+		\texttt{Region} & \emph{1=Northeast, 2= North Central, 3= South, 4=West} \\
 	\end{tabular}
 	
 	\vspace{.5cm}
-	\noindent Explore the \texttt{expenditure} data set and import data into \texttt{R}.
+%	\noindent Explore the \texttt{expenditure} data set and import data into \texttt{R}.
 	\vspace{.5cm}
-	\lstinputlisting[language=R, firstline=54, lastline=54]{PS01.R}  
+	\lstinputlisting[language=R, firstline=173, lastline=173]{PS01_answersIF.R}  %check
 	\vspace{.5cm}
 	\begin{itemize}
 		
 		\item
-		Please plot the relationships among \emph{Y}, \emph{X1}, \emph{X2}, and \emph{X3}? What are the correlations among them (you just need to describe the graph and the relationships among them)?
+		%Please plot the relationships among \emph{Y}, \emph{X1}, \emph{X2}, and \emph{X3}? What are the correlations among them (you just need to describe the graph and the relationships among them)?
+		In Figure~\ref{pairs}, there appears to be some positive correlation between
+		the per capita expenditure on Shelters$/$Housing Assistance (SHA) and each of the three
+		numerical variables.  In each case, an increase in the response variable accompanies an
+		increase in the candidate explanatory variable.  
+		
+		\begin{figure}
+		  \includegraphics{expenditure_pairs.pdf}
+		  \caption{Pair-wise comparison of expenditure variables}\label{pairs}
+		\end{figure}
+		
+		The weakest relationship is between SHA expenditure and the number of residents 
+		who are financially insecure.  When looked at in more detail,  Figure~\ref{y_x2} shows that
+		there is a negative correlation between the two variables (ie SHA expenditure per capita
+		decreases as the number of financially insecure residents increases) until $X2$ reaches
+		approximately 300 per 100,000;
+		after that point, the values increases are positively correlated.  (line fitted using:
+		\verb|`geom_smooth()` using method = 'loess' and formula 'y ~ x'|)
+
+
+		The income per capita shows some correlation with expenditure and with the number of
+		urban residents, but not with financially insecure residents.  Similarly, the plot of
+		urban residents against financially insecure residents appears to be uniformly distributed,
+		(i.e. uncorrelated), while expenditure and income both increase with the increase in urban
+		population.  
+		Figure~\ref{y_x3} shows that the slope of the line relating expenditure on SHA to the urban
+		population turns negative after $X3$ reaches approximately 750 per 1,000, however there are
+		very few data points in this region of the plot.
+
+		\begin{figure}
+		  \includegraphics[width=10cm]{y_x2.png}
+		  \caption{Relationship between expenditure on SHA and financially insecure 
+		  population }\label{y_x2}
+		  \includegraphics[width=10cm]{y_x3.png}
+		  \caption{Relationship between expenditure on SHA and urban population }\label{y_x3}
+		\end{figure}
+		
+		
 		\vspace{.5cm}
 		\item
-		Please plot the relationship between \emph{Y} and \emph{Region}? On average, which region has the highest per capita expenditure on housing assistance?
+		\clearpage
+		%Please plot the relationship between \emph{Y} and \emph{Region}? On average, which region has the highest per capita expenditure on housing assistance?
+		The relationship between expenditure on SHA and region is shown in Figure~\ref{regions}
+
+    \begin{figure}
+      \includegraphics[width=9.5cm]{region_boxplot.png}
+    	\includegraphics[width=9.5cm]{region_y.png}
+      \caption{SHA expenditure by geographical region}\label{regions}
+    \end{figure}
+    
+%    The West region has the greatest spread of Y values, North Central has the least.
+		\begin{verbatim}
+		  regional_mean_table <-expenditure %>% # Tidyverse method for grouping
+        group_by(Region) %>%
+        summarise(mean = round(mean(Y), 2))
+		\end{verbatim}
+    
+    \include{regional_means.tex}
+
+    The West region has the highest average per capita spending (\$88.31) on Shelters$/$Housing Assistance
+    (Table~\ref{tab:region_mean}).
+
+		
 		\vspace{.5cm}
+%----------------------------------------------------------------------------------
+
 		\item
-		Please plot the relationship between \emph{Y} and \emph{X1}? Describe this graph and the relationship. Reproduce the above graph including one more variable \emph{Region} and display different regions with different types of symbols and colors.
+%		Please plot the relationship between \emph{Y} and \emph{X1}? Describe this graph and the relationship. Reproduce the above graph including one more variable \emph{Region} and display different regions with different types of symbols and colors.
+    The graph of income per capita (X1, \$) against expenditure on SHA per capita (Y, \$) appears
+    to show a positive correlation between the two variables, i.e. it suggests that higher
+    pc income could be a predictor for higher spending on housing assistance (Figure~\ref{y_x1}).
+
+    \begin{figure}
+      \includegraphics[width=16cm]{y_x1.png}
+      \caption{Income vs SHA expenditure, per capita}\label{y_x1}
+    \end{figure}
+
+
+    When the data is subdivided by region the relationship between the variables is much less
+    convincing.  The individual regions show clear differences between the interaction of the 
+    two values - North Central and South show no positive correlation; in the Northeast and West
+    it is possible that some kind of relationship exists, but it's not consistent
+    (Figure~\ref{x1_regions}).
+    
+    The apparent relationship when the data are combined clearly masks underlying differences
+    between the regions.
+
+    \begin{figure}
+      \includegraphics[width=9.5cm]{y_x1_region.png}
+    	\includegraphics[width=9.5cm]{y_x1_region_facet.png}
+      \caption{Income per capita vs SHA expenditure, by Region}\label{x1_regions}
+    \end{figure}
+
 	\end{itemize}
-	
+
+\clearpage	
 \newpage
 
 	\appendix{Appendix - R code}
