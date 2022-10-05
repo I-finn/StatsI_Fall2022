@@ -1,0 +1,146 @@
+---
+title: "Tutorial Guide for Stats I Wk 4"
+author: "Martyn Egan"
+date: "2022-10-05"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+```
+
+```{r anscombe, echo = FALSE}
+fmla <- y ~ x
+op <- par(mfrow = c(2, 2), mar = 0.1+c(4,4,1,1), oma =  c(0, 0, 2, 0))
+for(i in 1:4) {
+  fmla[2:3] <- lapply(paste0(c("y","x"), i), as.name)
+  plot(fmla, data = anscombe, xlim = c(3, 19), ylim = c(3, 13))
+  abline(lm(fmla, data = anscombe), col = "blue")
+}
+par(op)
+```
+
+## Learning Outcomes
+
+Today's tutorial will focus on the important subjects of correlation and regression, and how we can plot bivariate relationships. 
+
+In R we will:
+
+1. Introduce the advanced plotting capabilities of the `ggplot2` package.
+2. Show how to produce many plots at once using *faceting*.
+3. Learn how to use the `cor()` function to find the correlation of two variables.
+3. Learn how to use the `lm()` function to run a linear regression.
+
+We will also revise the data science skills we have been using in recent weeks, including:
+
+1. Working with an R script to perform analysis which is *reproducible*.
+2. Saving graphical output to file.
+3. Using Latex to produce a pdf of our analysis.
+
+Finally, we will be introducing the statistical concepts of *correlation* and *regression* for measuring and quantifying the relationship between two continuous variables.
+
+## Correlation and Regression
+
+Up to now we have been performing either univariate analysis (analysis of one variable), or a bivariate analysis of two categorical variables - i.e. variables which take discrete values. This week we move on to bivariate analysis of continuous variables.
+
+The analysis of the relationship between two (or more) continuous variables is at the heart of modern data science. In machine learning, we use feature variables to *predict* the value of an outcome (or target) variable. In the social sciences, we are more often interested in determining the precise relationship between an independent and dependent variable (i.e. the value of the coefficient which allows us to estimate y, our dependent variable, based on some linear combination of x, our dependent variable).
+
+### Scatter Plots
+
+Our first step in measuring the relationship between two variables is to be able to visualise their distribution relative to each other. This is where the *scatter plot* comes in. A scatter plot, in which the independent variable is by convention plotted on the x axis, and the dependent on the y axis, allows us to immediately inspect whether our variables are correlated.
+
+```{r scatter plot}
+with(iris, plot(Sepal.Length, Sepal.Width,
+                main = "Plot of sepal length and width for 3 species of iris"))
+```
+
+The above plot is made from the famous `iris` dataset using R's base `plot()` function, which automatically plots a scatter plot when two continuous variables are supplied as arguments. A scatter plot can be easily modified to include a third categorical variable: in the case of the `iris` dataset, there are observations for three different species of iris. By supplying the additional argument `col = group`, where `group` is the name of a categorical variable, the `plot()` function will change the colour of the points; likewise, if the argument `pch = group` is supplied, `plot()` will change the shape of the points, though may require the vector to be coerced (see code below).
+
+```{r scatter plot with categorical variable}
+with(iris, plot(Sepal.Length, Sepal.Width,
+                col = Species,
+                pch = c(as.numeric(Species)),
+                main = "Plot of sepal length and width for 3 species of iris"))
+```
+
+### Correlation
+
+Visualisation is good for data exploration, but as social scientists we typically wish to be able to describe relationships with more precision. This is where the coefficient of correlation, r, comes in. The coefficient of correlation, also known as the Pearson correlation coefficient, is a single value between -1 and 1 which measures the strength and direction of the relationship between two continuous variables. In R, the `cor()` function will calculate this for you.
+
+```{r correlation}
+with(iris, cor(Sepal.Width, Sepal.Length))
+```
+
+The above result tells us that sepal width and length are negatively correlated in our `iris` dataset - or are they? 
+
+```{r correlation control}
+by(iris[,c("Sepal.Length", "Sepal.Width")], 
+   iris$Species, 
+   function(x) {cor(x$Sepal.Length, x$Sepal.Width)})
+```
+
+The code above groups our two continuous variables by `Species` (it uses base R's `by()` function, together with a lambda or anonymous function; this is much more easily done using the `dplyr` package, which we will introduce next week). As we can see from the output, by *controlling* for species, the true relationship between sepal length and width is revealed, and goes in the opposite direction to our previous result.
+
+This finding should encourage us to be careful when exploring bivariate relationships - has our analysis accounted for all important intervening variables? Failing to do so can produce meaningless, or even misleading results.
+
+### Regression
+
+This is especially so when we move from correlation to regression. Whereas the coefficient of correlation tells us the strength of the relationship between two variables (i.e. how much of the variation in one variable can be associated with variation in another, and whether that relationship is positive or negative), regression provides us with an estimate of the *coefficients* that best describe that relationship: the intercept and the slope. 
+
+These are typically given in the form of an equation, Y = a + bX, where *Y* is the dependent variable, *X* the independent variable, *a* the intercept, and *b* the slope. R's `lm()` function performs the necessary calculations to obtain these values, and many others.
+
+```{r regression}
+lm(Sepal.Width ~ Sepal.Length, # formula is of type Y ~ X! 
+   data = iris)
+```
+
+We can visualise precisely this line by supplying the `lm()` function to the `abline()` plotting function. Examine the code below.
+
+```{r plotting a regression line}
+with(iris, plot(Sepal.Length, Sepal.Width,
+                main = "Sepal length and width for 3 species of iris"))
+abline(lm(Sepal.Width ~ Sepal.Length, data = iris),
+       col = "blue")
+```
+
+As we can see, the line intercepts the y axis at 3.42 (or would do, if the x axis began at 0), and slopes gently downwards (-0.06).
+
+The basic output (or "call") from the `lm()` function is sparse: it provides only the intercept and the slope coefficients. For this reason, you should always assign the output of the `lm()` function to an object, and then inspect it. The `summary()` function provides a better review.
+
+```{r summary}
+summary(lm(Sepal.Width ~ Sepal.Length,
+        data = iris))
+```
+
+The `summary()` function provides us with much more detailed output: as well as the coefficients, we also have information about the distribution of the *residuals* (the "bits left over", or difference between the predicted and actual values), as well as statistics relating to the *statistical significance* of the model. Here, for instance, we see that the estimate for the intercept, 3.42, is highly statistically significant, whereas the estimate for the slope is not. What does this mean? 
+
+Finally, at the bottom we have measures for R-squared and the F-statistic. R-squared, the coefficient of determination, is related to Pearson's coefficient of correlation, but it should be interpreted a little differently. Simply put, it is the percentage of variation in our dependent variable (sepal width) "explained" by our independent variable(s). Here, this is only 1.4 percent!
+
+```{r regression controlled}
+by(iris[,c("Sepal.Length", "Sepal.Width")], 
+   iris$Species, 
+   function(x) {summary(lm(x$Sepal.Width ~ x$Sepal.Length))})
+```
+
+Again, when we *control* for species, we get quite different results from our regression models. Can you interpret these results? In particular, how does the significance of the intercept change with respect to the slope? And how about R-squared? 
+
+We should always be cautious when running models! A further example of this are the plots at the top of the page, which are taken from the `anscombe` dataset, a teaching dataset in which all four x-y subsets have the same statistical properties of mean, variance, correlation and regression line. The blue line in each plot is the regression line: as you can see, despite the very different distributions of the data, they all have the same line!
+
+## Today's workflow
+
+Because we are dealing with fundamental concepts that we will return to throughout the rest of the module, today's workflow will be a little more restricted. We will be working with a built-in dataset, `midwest`, and our workflow will consist of:
+
+1. Exploratory data analysis, including visualisation of correlations.
+2. Running a linear regression model.
+3. Exploring the object created by the regression.
+4. Visualising the model, including adding a regression line.
+5. Saving our results and publishing them using Latex.
+
+# Step 1.
+
+Make sure you have synced your forked repository on github and pulled any updates to your local system. Open the `tutorial04.Rproj`, and then open the R script `tutorial04.R` from inside R Studio using the Files tab in the bottom right window.
+
+# Step 2.
+
+Open the `results.tex` file in Tex Studio, or whichever Latex editor you are using. Using the code from last week's `results.tex` file, try to get the image that you saved of your ggplot into Latex. Try also to get the output of the `summary()` call from our linear model into Latex using the verbatim environment. When you have done this, compile a pdf and try to push the results up to your github repository.
