@@ -1,0 +1,27 @@
+---
+title: "`GP` codebook"
+---
+
+# Description
+
+The data exploits a randomized policy experiment in
+India, where since the mid-1990s, 1\/
+3 of village council heads have been randomly reserved
+for women. A subset of the data from West Bengal can be found at the following link:
+https://raw.githubusercontent.com/kosukeimai/qss/master/PREDICTION/women.csv
+
+Each observation in the data set represents a village and there are two villages associated
+with one GP (i.e. a level of government is called "GP"). 
+
+# Format
+
+A .csv file with 322 observations on 6 variables: 2 identifiers; 2 binary; 2 numeric
+
+| [,1] `GP` &nbsp;&nbsp; Identifier for the Gram Panchayat &nbsp;&nbsp;
+| [,2] `village` &nbsp;&nbsp; identifier for each village
+| [,3] `reserved` &nbsp;&nbsp; binary variable indicating whether the GP was reserved for women leaders or not
+| [,4] `female` &nbsp;&nbsp; binary variable indicating whether the GP had a female leader or not
+| [,5] `irrigation` &nbsp;&nbsp; variable measuring the number of new or repaired irrigation facilities in the village since the reserve policy started
+| [,6] `water` &nbsp;&nbsp; variable measuring the number of new or repaired drinking-water facilities in the village since the reserve policy started
+
+
