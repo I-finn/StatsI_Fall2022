@@ -29,10 +29,6 @@ pkgTest <- function(pkg){
 
 lapply(c(),  pkgTest)
 
-# set working directory
-setwd("~/Documents/GitHub/QTM200Spring2021/problem_sets/PS1")
-
-
 #####################
 # Problem 1
 #####################
@@ -43,4 +39,4 @@ y <- c(105, 69, 86, 100, 82, 111, 104, 110, 87, 108, 87, 90, 94, 113, 112, 98, 8
 # Problem 2
 #####################
 
-expenditure <- read.table("https://raw.githubusercontent.com/ASDS-TCD/StatsI_Fall2021/main/datasets/expenditure.txt", header=T)
+expenditure <- read.table("https://raw.githubusercontent.com/ASDS-TCD/StatsI_Fall2022/main/datasets/expenditure.txt", header=T)

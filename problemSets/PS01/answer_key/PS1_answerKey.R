@@ -70,7 +70,7 @@ t.test(y, mu = 100, conf.level = 0.95, alternative = "greater")
 #####################
 
 # read in expenditure data
-expenditure <- read.table("https://raw.githubusercontent.com/ASDS-TCD/StatsI_Fall2021/main/datasets/expenditure.txt", header=T)
+expenditure <- read.table("https://raw.githubusercontent.com/ASDS-TCD/StatsI_Fall2022/main/datasets/expenditure.txt", header=T)
 # inspect data through summary
 summary(expenditure)
 
