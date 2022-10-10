@@ -58,44 +58,36 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 #& Not Stopped & Bribe requested & Stopped/given warning \\
 #Upper class & 14 & 6 & 7 \\
 #Lower class & 7 & 7 & 1 \\
-results <- matrix( c (14, 6, 7, 7, 7, 1), nrow = 2, byrow = TRUE) 
-observed <- results            
+observed  <- matrix( c (14, 6, 7, 7, 7, 1), nrow = 2, byrow = TRUE) 
+
 # create data structure with named dimensions
 cols <- c("NotStopped", "BribeRequested",  "StoppedGivenWarning")
 rows <- c("UpperClass", "LowerClass")
-#results <- matrix( c (14, 6, 7, 7, 7, 1), nrow = 2, byrow = TRUE, 
-#                   dimnames = list(rows, cols))
-                   
-ncols <- length(observed[1,])
-nrows <-length(observed[,1])
 
+observed_df <- data.frame(observed, row.names = rows)
+names(observed_df) <- cols
+print(observed_df)
 
-#rm(results_tab)
-
-print(observed)
+pairs(observed)
 
 #\item [(a)]
-#Calculate the $\chi^2$ test statistic by hand/manually (even better if you can 
-# do "by hand" in \texttt{R}).\\
+#Calculate the $\chi^2$ test statistic by hand/manually\\
 
-#results_df <- data.frame(results)
-#results_df
-
+###--------------------------  0 start listing of code from here
+ncols <- length(observed[1,])
+nrows <- length(observed[,1])
 
 # get totals
 row_tots <- vector("double", nrows)
 col_tots <- vector("double", ncols)
 
-totals <- sum(observed)
+totals <- sum(observed)  # total number of observations
 
-for (i in 1:nrows) {
-  row_tots[i] <- sum(observed[i,])
-}
-for (i in 1:ncols) {
-  col_tots[i] <- sum(observed[, i])
-}
+# calculate row and column totals, e.g, total for NotStopped, UpperClass, etc
+for (i in 1:nrows) {row_tots[i] <- sum(observed[i, ])}
+for (i in 1:ncols) {col_tots[i] <- sum(observed[, i])}
 
-#get expected
+#get expected = row total * column total / total observations
 expected <- observed
 for (i in 1:nrows) {
   for (j in 1:ncols) {
@@ -103,53 +95,73 @@ for (i in 1:nrows) {
   }
 }
 
-expected
-
+# calculate difference between observed and expected
 o_e <- observed 
 for (i in 1:nrows) {
   for (j in 1:ncols) {
-    o_e[i,j] <- (observed[i,j] - expected[i,j])^2  /expected[i,j]
+    o_e[i,j] <- (observed[i,j] - expected[i,j])^2 / expected[i,j]
   }
 }
 
+#calculate chi-squared value & degrees of freedom
 chi_sq_val <- sum(o_e)
-cat(str_glue("The chi_squared statistic is {round(chi_sq_val,3)}"))
-
 df = (nrows-1) * (ncols-1)
 
+cat(str_glue("The chi_squared statistic is {round(chi_sq_val,3)}"))
 cat(str_glue("The chi_squared degrees of freedom is {df}"))
 
+# plot of observed and expected values
+png("obs_exp.png")
+barplot(cbind(expected, observed ), legend.text = rows, 
+        names.arg = c("ns", "br", "sgw", "ns",  "br", "sgw"),
+        xlab = "Observed   -    Expected")
+dev.off()
 
 #\item [(b)]
 #Now calculate the p-value from the test statistic you just created R
 # .\footnote{Remember frequency should be $>$ 5 for all cells, but let's calculate 
 # the p-value here anyway.}  What do you conclude if $\alpha = 0.1$?\\
 
-pchisq(chi_sq_val, df=df, lower.tail=FALSE)
+p_value <- pchisq(chi_sq_val, df=df, lower.tail=FALSE)
+alpha <- 0.1
 
 # p > alpha, can't reject null
+if (p_value > alpha ) txt <- "cannot " else txt <- ""
+cells_under <- length(observed[observed<5])
 
-cat(str_glue("The chi_squared degrees of freedom is {df}"))
-
-cells_ok <- length(observed[observed<5])
+cat(str_glue("The p-value is {round(p_value*100,2)}%, alpha is {alpha*100}%."))
+cat(str_glue("We {txt}reject the null hypothesis that the two sets are from the\n same population."))
+cat(str_glue("note: {cells_under} observed cell(s) with less than 5 values."))
 
 
 #	\item [(c)] Calculate the standardized residuals for each cell and put them in the table below.
 
 z <- observed 
 for (i in 1:nrows) {
-  row_prop<- (1-row_tots [i] / totals)
-  
+  row_prop<- (1 - (row_tots [i] / totals))
   for (j in 1:ncols) {
-    col_prop<- (1-col_tots [j] / totals)
+    col_prop<- (1-  (col_tots[j] / totals))
     z[i,j] <- (observed[i,j] - expected[i,j])  /sqrt (expected[i,j]* row_prop * col_prop)
   }
 }
+z_df <- data.frame(z, row.names = rows)
+names(z_df) <- cols
 
-out_z<- z
+print(z_df)
 
-dimnames(out_z) <- list(rows, cols)
+#z_tab <- table(z_df)
+output_stargazer(z_df, outputFile="std_residuals.tex", type = "latex",
+                 appendVal=FALSE, 
+                 title="Standardised Residuals", 
+                 digits=2, 
+                 summary = FALSE,
+                 style = "apsr",
+                 table.placement = "h",
+                 label = "StandardisedResiduals",
+                 rownames = TRUE
+                 )
 
+#https://www.rdocumentation.org/packages/stargazer/versions/5.2.3/topics/stargazer
 
 #\begin{table}[h]
 #		\centering
@@ -167,7 +179,7 @@ dimnames(out_z) <- list(rows, cols)
 
 #	\item [(d)] How might the standardized residuals help you interpret the results?  
 
-
+#  fewer upper class individuals asked for bribes and more given warnings
 
 
 ######################################################################################
@@ -193,7 +205,7 @@ dimnames(out_z) <- list(rows, cols)
 
 
 #\item [(a)] State a null and alternative (two-tailed) hypothesis. 
-
+# null: no diff
 
 #\item [(b)] Run a bivariate regression to test this hypothesis in \texttt{R} (include your code!).
 
