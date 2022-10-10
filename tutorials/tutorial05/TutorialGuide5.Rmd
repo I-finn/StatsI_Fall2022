@@ -1,0 +1,107 @@
+---
+title: "Tutorial Guide for Stats I Wk 5"
+author: "Martyn Egan"
+date: "2022-10-12"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(broom)
+```
+
+```{r dplyr example, echo = FALSE}
+diamonds %>%
+  filter(carat <= 2.5) %>%
+  mutate(lprice = log2(price),
+         lcarat = log2(carat)) %>%
+  ggplot(aes(lcarat, lprice)) +
+    geom_hex(bins = 50) +
+    geom_smooth(method = "gam", 
+                formula = y ~ s(x, bs = "cs"),
+                se = FALSE,
+                color = "#293352",
+                linetype = 5,
+                size = 0.5) +
+    labs(title = "Diamond price by weight",
+         caption = "adapted from 'R for Data Science', Wickham/Grolemund") +
+    xlab("Log2 of price ($)") +
+    ylab("Log2 of weight (carat)") +
+    scale_fill_continuous(high = "#132B43", low = "#56B1F7") +
+    theme_classic()
+```
+
+## Learning Outcomes
+
+Today's tutorial will focus on introducing you to the `tidyverse` approach to data manipulation/transformation. We will focus on:
+
+1. The basics of data manipulation using the `dplyr` package.
+2. Linking operations together using the 'pipe' operator, `%>%`.
+3. Creating simple workflows through to visualisation.
+
+In the process we'll revise further the data science skills we've been working on over the past month.
+
+## Data Manipulation
+
+Often in data science we want to programme *interactively*: i.e. we want to explore our data, and try different analyses, in real time. We may not know in advance all of the operations we will need to perform in order to achieve our goals. In this respect, it can be helpful to perform spontaneous manipulation of our data, and to combine this manipulation with other analytical operations, such as calculating summary statistics, and visualising our results. This way we can change one or two arguments in a single line of code, rather than rerun our entire script.
+
+We have seen how the basic operations of subsetting/filtering, modeling and visualisation can be achieved using the 'basic' or built-in commands in R's `base` package. Let's take an example from last week's class:
+
+```{r base operations, eval = FALSE}
+by(iris[,c("Sepal.Length", "Sepal.Width")], 
+   iris$Species, 
+   function(x) {summary(lm(x$Sepal.Width ~ x$Sepal.Length))})
+```
+
+The above code is one solution to a particular programming problem: we have a dataset, `iris`, which contains continuous measurements of things like sepal length and width, and petal length and width. Within this dataset, however, are gathered different species of iris. So what we'd really like to do is *separate* each species into a different group, and then perform the same analysis on each group individually.
+
+This is what the `by()` function does. We first supply a dataset (in this case, we're just interested in the sepal length and width variables, so we subset on these columns). Next, we provide a categorical variable *by* which to group that dataset. Finally, we provide a function we wish to perform on the grouped data. Note that this is in the form of an *anonymous* or *lambda* function (for those taking computer programming, we will address lambda functions in coming weeks; for those who are not, a lambda function is essentially a function you call just once and which doesn't have a name.) 
+
+The lambda function calls the `lm()` function on `x` (the object(s) supplied to it, and specifically the `Sepal.Width` and `Sepal.Length` vectors of each `x`). The `lm()` function is in turn *wrapped* inside the `summary()` function (because the default output from `lm()` is very sparse.) 
+
+Altogether, this code contains two functions inside a third lambda function, which is itself an argument to the `by()` function - not very easy to understand!
+
+```{r dplyr group by}
+iris %>%
+  nest_by(Species) %>%
+  mutate(model = list(lm(Sepal.Width~Sepal.Length,
+                         data = data))) %>%
+  summarise(tidy(model))
+```
+
+The code above uses an alternative approach involving the `dplyr` package and the *pipe* operator `%>%`. To be perfectly honest, `dplyr` has never worked very well with the `lm()` function, because its output is a `list` object, and `dplyr` prefers to work with rectangular (or 'tidy') data. However, the code provides an example of the underlying `tidyverse` philosophy: operations are broken down into their constituent parts, and the pipe operator is used to join together the operations. 
+
+Here, we first call the object we will operate on, `iris`; next, we `nest_by()` the `Species` category (`nest_by()` is a specific grouping operation: normally we would use the `group_by()` function here!); then we create a new column using the `mutate()` function; finally we create a printable output using the `summarise()` function. 
+
+What goes on inside our calls to `mutate()` and `summarise()` is a little complicated, due to the `lm()` function producing a `list` as an output (we need to use the `tidy()` function from the `broom` package to get that output into a rectangular shape: far from ideal.) In this particular case I would therefore probably stick with the base R approach. 
+
+The power of the `tidyverse` method however lies in the way that individual operations can be quickly combined together to produce sophisticated analysis and visualisation. Filtering, grouping, mutating, summarising, visualising: these operations can all be 'piped' together into a single command, potentially saving a lot of time.
+
+```{r dplyr pipe example}
+iris %>%
+  filter(Sepal.Length > 4.5) %>%
+  group_by(Species) %>%
+  mutate(mean_x = mean(Sepal.Length),
+         mean_y = mean(Sepal.Width)) %>%
+  ungroup() %>%
+  ggplot(aes(Sepal.Length, Sepal.Width)) +
+    geom_point(aes(colour = Species)) +
+    geom_point(aes(x = mean_x, y = mean_y, colour = Species),
+               shape = 18, size = 4)
+
+```
+
+The above code provides a (purely hypothetical) example of these different operations all piped together. First we call our data, `iris`; then we perform a filtering operation; then a grouping operation (note the use of `group_by()`: this is the typical grouping function in `dplyr`); and then a statistical operation - we find the mean point of our different groups on both axes, and we store this value in a new column using the `mutate()` function. 
+
+Next we `ungroup()` our data again to return it to its original rectangular shape; and finally we use `ggplot2` to plot the resulting values (note that the 'pipe' operator for `ggplot()` remains the `+` symbol!). The result is a scatter plot with our raw observations, plus an average point (the centroid) for each species.
+
+There are very many operations which can be performed using these simple building blocks, and I recommend you read through the 'R for Data Science' chapter on *Data Transformation* [here](https://r4ds.had.co.nz/transform.html) to get an idea of what is possible. 
+
+A word of warning though: the 'tidy' approach to data science in R is becoming dominant, primarily because the syntax reads in a more 'human' manner, and is therefore easier to learn. But the `tidyverse` method is not without its flaws: as we have already seen, it doesn't marry well with non-rectangular, non-'tidy' data (i.e. each variable in a column, each case in a row, each observation in a cell). Trying to produce the equivalent output to the base R `table()` function using `dplyr` is a case in point. It can also be very slow compared to base R functions (although this will not often be an issue for the data we will be dealing with.) Finally, if you only learn the 'tidy' approach to R, you will miss out on the true versatility of R as a programming language, and will find yourself restricted to the kind of operations which `dplyr` enables.
+
+## Today's Workflow
+
+### Step 1.
+
+As usual, make sure you have synced your forked github repository, and then pull any changes to your local system. Once you have done this, open the `tutorial05.Rproj` file, and from within R open the `tutorial05.R` script file. We will be working exclusively from this script for today's class.
