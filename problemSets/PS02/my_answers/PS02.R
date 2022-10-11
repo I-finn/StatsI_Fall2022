@@ -149,7 +149,7 @@ names(z_df) <- cols
 
 print(z_df)
 
-#z_tab <- table(z_df)
+# output results for Zij values to .tex file
 output_stargazer(z_df, outputFile="std_residuals.tex", type = "latex",
                  appendVal=FALSE, 
                  title="Standardised Residuals", 
@@ -161,26 +161,17 @@ output_stargazer(z_df, outputFile="std_residuals.tex", type = "latex",
                  rownames = TRUE
                  )
 
-#https://www.rdocumentation.org/packages/stargazer/versions/5.2.3/topics/stargazer
 
-#\begin{table}[h]
-#		\centering
-#		\begin{tabular}{l | c c c }
-#			& Not Stopped & Bribe requested & Stopped/given warning \\
-#			\\[-1.8ex] 
-#			\hline \\[-1.8ex]
-#			Upper class  &  &  &  \\
-#			\\
-#			Lower class &  &   &   \\
-			
-#		\end{tabular}
-#	\end{table}
-	
+# check result
+chisq.test(observed)
+
+#https://www.rdocumentation.org/packages/stargazer/versions/5.2.3/topics/stargazer
 
 #	\item [(d)] How might the standardized residuals help you interpret the results?  
 
-#  fewer upper class individuals asked for bribes and more given warnings
-
+#  fewer upper class individuals asked for bribes and more given warnings; 
+#  the contribution from lower class drivers expected to give bribes is nearly
+#  equivalent to the contribution from upper class drivers getting warnings
 
 ######################################################################################
 # Problem 2
@@ -199,23 +190,90 @@ output_stargazer(z_df, outputFile="std_residuals.tex", type = "latex",
 
 # Each observation in the data set represents a village and there are two villages 
 # associated with one GP (i.e. a level of government is called "GP"). 
-# Figure~\ref{fig:women_desc} below shows the names and descriptions of the variables in the dataset. The authors hypothesize that female politicians are more likely to support policies female voters want. Researchers found that more women complain about the quality of drinking water than men. You need to estimate the effect of the reservation policy on the number of new or repaired drinking water facilities in the villages.
+# Figure~\ref{fig:women_desc} below shows the names and descriptions of the variables 
+# in the dataset. The authors hypothesize that female politicians are more likely to 
+# support policies female voters want. Researchers found that more women complain about
+# the quality of drinking water than men. You need to estimate the effect of the 
+# reservation policy on the number of new or repaired drinking water facilities 
+#in the villages.
 # Names and description of variables from Chattopadhyay and Duflo (2004)
-
-
+# 1 `GP`  Identifier for the Gram Panchayat &nbsp;&nbsp;
+# 2 `village`  identifier for each village
+# 3 `reserved`  binary variable indicating whether the GP was reserved for women leaders or not
+# 4 `female`  binary variable indicating whether the GP had a female leader or not
+# 5 `irrigation` variable measuring the number of new or repaired irrigation facilities in the village since the reserve policy started
+# 6 `water`  variable measuring the number of new or repaired drinking-water facilities in the village since the reserve policy started
 
 #\item [(a)] State a null and alternative (two-tailed) hypothesis. 
-# null: no diff
+# null: no diff in incidence of new or repaired drinking-water facilities 
+#  in the village since the reserve policy started
+#   ie 'water' is independent of 'reserved'
+# alternate: the incidence of new or repaired drinking-water facilities is 
+#  correlated to the reservation policy
+
+
+policy <- read.csv("https://raw.githubusercontent.com/kosukeimai/qss/master/PREDICTION/women.csv")
+#write.csv(policy,"Data/policy.csv")
+policy<-read.csv("Data/policy.csv")
+
+summary(policy)
+pairs(policy[4:7])
+
+lm(female ~ reserved, data=policy)
+
+sum(policy$reserved)
+sum(policy$female)
+
 
 #\item [(b)] Run a bivariate regression to test this hypothesis in \texttt{R} (include your code!).
 
+water <- lm(water ~ reserved , data = policy)
+summary(water)
 
+p<- ggplot(policy, aes(reserved, water, colour=female)) 
+p + geom_jitter()
+
+
+p<- ggplot(policy, aes(reserved, water, group_by(reserved))) 
+p + geom_boxplot(outlier.colour = 'red', outlier.size = 3, aes(group=reserved))
+ggsave("water_boxplot.png")
+
+
+output_stargazer(water, outputFile="water_model.tex", type = "latex",
+                 appendVal=FALSE, 
+                 title="Pearson Linear Regression - Water ~ Reserved", 
+                 style = "apsr",
+                 label = "water_reserved"
+)
+
+
+
+output_stargazer(z_df, outputFile="std_residuals.tex", type = "latex",
+                 appendVal=FALSE, 
+                 title="Standardised Residuals", 
+                 digits=2, 
+                 summary = FALSE,
+                 style = "apsr",
+                 table.placement = "h",
+                 label = "StandardisedResiduals",
+                 rownames = TRUE
+)
+
+
+
+
+###---------------------------------------------------------------------------
+
+water_female <- lm(water ~ female , data = policy)
+
+summary(water_female)
+
+plot(water)
 #\item [(c)] Interpret the coefficient estimate for reservation policy. 
+  
+with(policy, plot(water, reserved))
+p<- ggplot(policy)
+p+ geom_jitter(aes(reserved, water, colour=female))
 
-
-
-#policy <- read.csv("https://raw.githubusercontent.com/kosukeimai/qss/master/PREDICTION/women.csv")
-write.csv(policy,"Data/policy.csv")
-policy<-read.csv("Data/policy.csv")
-
-pairs(policy)
+p<- ggplot(policy, aes(reserved, water), colour=female) + geom_jitter()
+p+ facet_wrap(vars(female))

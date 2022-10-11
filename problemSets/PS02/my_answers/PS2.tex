@@ -69,6 +69,8 @@
 
 \begin{document}
 	\maketitle
+	
+	\begin{comment}
 	\section*{Instructions}
 \begin{itemize}
 	\item Please show your work! You may lose points by simply writing in the answer. If the problem requires you to execute commands in \texttt{R}, please include the code you used to get your answers. Please also include the \texttt{.R} file that contains your code. If you are not sure if work needs to be shown for a particular problem, please ask.
@@ -77,6 +79,7 @@
 	\item Total available points for this homework is 80.
 \end{itemize}
 
+	\end{comment}
 	
 	\vspace{.5cm}
 	\section*{Question 1 (40 points): Political Science}
@@ -96,49 +99,43 @@
 	\end{tabular}
 \end{table}
 
-
 \begin{enumerate}
 
-
-	
 	\item [(a)]
-	Calculate the $\chi^2$ test statistic by hand/manually (even better if you can do "by hand" in \texttt{R}).\\
+	The $\chi^2$ test statistic is calculated as follows:\\
 	%\vspace{7cm}
 	
 	Read in the data as a matrix.
 	\lstinputlisting[language=R, firstline=61, lastline=61]{PS02.R}  
 
-	Calculate the expected values (as a matrix), then calculate the difference 
-	between each cell and its contribution to the chi-squared statistic. 
+	Calculate the expected values, then calculate the difference between the observed 
+	and expected values for each sub-category.  Calculate the contribution to the 
+	$\chi^2$ statistic. 
 	(expected = number in class * number of outcomes / total number;
-		difference = observed - expected; contribution = difference$^2$ /expected) %\caret
-	
+		difference = observed - expected; contribution = difference$^2$/expected) %\caret
+		
+		For example, for the sub-category `Upper Class' and `Not Stopped':
 	
 	\begin{table}[htb]
 		\centering
-		\begin{tabular}{l | r}
+		\begin{tabular}{l | l}
 			\multicolumn{2}{c}{Upper Class, Not Stopped} \\
 			\\[-1.8ex] 
 			\hline \\[-1.8ex]
 			observed  &  14  \\
-			\\
 			expected  &  13.5 = (27 * 21 / 42)\\
-			\\
 			difference  &  0.5  = (14 - 13.5)\\
-			\\
 			chi sq contribution  &  0.0185  = (0.5 )$^2$ / 13.5\\
 			
 		\end{tabular}
 	\end{table}
-	observed = 14
-	
-	
-	
 	
 	\lstinputlisting[language=R, firstline=77, lastline=108]{PS02.R}  
 
 	\item [(b)]
 	Now calculate the p-value from the test statistic you just created (in \texttt{R}).\footnote{Remember frequency should be $>$ 5 for all cells, but let's calculate the p-value here anyway.}  What do you conclude if $\alpha = 0.1$?\\
+	
+	% todo check cell minimum for chi-sq - expected only or all??
 	
 	\lstinputlisting[language=R, firstline=125, lastline=126]{PS02.R}  
 	
@@ -146,7 +143,7 @@
 	The p-value is 15.02%, alpha is 10%
 	We cannot reject the null hypothesis that the two sets are from the
 same population
-	1 observed cell(s) have less than 5 values
+	1 observed cell(s) with less than 5 values
 	\end{verbatim}
 
   The observed and expected values are shown in Figure~\ref{fig:obs_exp}	
@@ -155,27 +152,18 @@ same population
 		  \caption{Observed vs Expected values for traffic stop. ns = Not Stopped; sgw = Stopped Given Warning; br = Bribe Requested}\label{fig:obs_exp}
 	\end{figure}
 
+  The results of the builtin \texttt{R} chisq.test function are as follows:
+  \begin{verbatim}
+  
+	Pearson's Chi-squared test
 
+data:  observed
+X-squared = 3.7912, df = 2, p-value = 0.1502
+\end{verbatim}
 	\newpage
-	\item [(c)] Calculate the standardized residuals for each cell and put them in the table below.
+	\item [(c)] The standardized residuals are set out in the table below:
 	\vspace{1cm}
 
-	
-	\begin{comment}
-	\begin{table}[h]
-		\centering
-		\begin{tabular}{l | c c c }
-			& Not Stopped & Bribe requested & Stopped/given warning \\
-			\\[-1.8ex] 
-			\hline \\[-1.8ex]
-			Upper class  &  &  &  \\
-			\\
-			Lower class &  &   &   \\
-			
-		\end{tabular}
-	\end{table}
-	\end{comment}
-	
 	\include{std_residuals.tex}
 	
 	%\vspace{7cm}
@@ -183,12 +171,12 @@ same population
 
     The biggest contribution to the residuals was from the `Bribe Requested' variable - 
     fewer upper class individuals were expected to hand over bribes.  The difference 
-    between the two groups appears to be a combination of fewer upper class individuals
-    being expected to hand over bribes and more of them being given a warning instead.
+    between the two groups appears to be a combination of fewer upper class drivers
+    being expected to hand over bribes and more of them being given a warning instead 
+    the opposite outcome occuring for lower class drivers.
     
   
 \end{enumerate}
-
 
 \newpage
 
@@ -217,14 +205,49 @@ below shows the names and descriptions of the variables in the dataset. The auth
 	  repaired drinking water facilities in the villages.
 	\end{description}
 	
+	\begin{comment}
+	
+	The data is as follows: 
+
+| [,3] `reserved`~~ binary variable indicating whether the GP was reserved for women leaders or not
+| [,4] `female` ~~binary variable indicating whether the GP had a female leader or not
+| [,5] `irrigation` ~~variable measuring the number of new or repaired irrigation facilities in the village since the reserve policy started
+| [,6] `water` ~~variable measuring the number of new or repaired drinking-water facilities in the village since the reserve policy started
+
+  \end{comment}
+	
 	%\vspace{6cm}
-	\item [(b)] Run a bivariate regression to test this hypothesis in \texttt{R} 
-	(include your code!).
+	\item [(b)] Bivariate regression to test this hypothesis:.
+
+  Import the data.
+	\lstinputlisting[language=R, firstline=215, lastline=215]{PS02.R}  
+	
+	Use the builtin \texttt{R} function \texttt{lm} to investigate the relationship
+	between the number of new or repaired drinking water facilities in the villages
+	and the binary variable indicating whether the GP was reserved for women leaders or not.
+	\lstinputlisting[language=R, firstline=222, lastline=222]{PS02.R}  
 	
 	
+	This results in the following output:
 	
-	\vspace{6cm}
+	\include{water_model.tex}
+	
+	
+%	\vspace{6cm}
 	\item [(c)] Interpret the coefficient estimate for reservation policy. 
 \end{enumerate}
+  The 
+\begin{figure}[h!]
+	\caption{\footnotesize{Boxplot of number of drinking water projects, grouped by reserved}}
+	\vspace{.5cm}
+	\centering
+	\label{fig:water_reserved}
+	\includegraphics[width=1.0\textwidth]{water_boxplot.png}
+\end{figure}		
+
+\newpage
+\appendix{Appendix - Code}
+	\lstinputlisting[language=R]{PS02.R}  
+
 
 \end{document}
