@@ -222,28 +222,43 @@ below shows the names and descriptions of the variables in the dataset. The auth
   Import the data.
 	\lstinputlisting[language=R, firstline=215, lastline=215]{PS02.R}  
 	
-	Use the builtin \texttt{R} function \texttt{lm} to investigate the relationship
-	between the number of new or repaired drinking water facilities in the villages
-	and the binary variable indicating whether the GP was reserved for women leaders or not.
-	\lstinputlisting[language=R, firstline=222, lastline=222]{PS02.R}  
+  The analyis used  the builtin \texttt{R} function \texttt{lm} to investigate the 
+  relationship 	between the number of new or repaired drinking water facilities in 
+  the villages and the binary variable indicating whether the GP was reserved for 
+  women leaders or not.
+
+	\lstinputlisting[language=R, firstline=230, lastline=230]{PS02.R}  
 	
 	
 	This results in the following output:
 	
 	\include{water_model.tex}
-	
-	
-%	\vspace{6cm}
-	\item [(c)] Interpret the coefficient estimate for reservation policy. 
-\end{enumerate}
   The 
 \begin{figure}[h!]
 	\caption{\footnotesize{Boxplot of number of drinking water projects, grouped by reserved}}
 	\vspace{.5cm}
 	\centering
 	\label{fig:water_reserved}
-	\includegraphics[width=1.0\textwidth]{water_boxplot.png}
+	\includegraphics[width=1.0\textwidth]{resrvd_water_boxplot.png}
 \end{figure}		
+	
+
+
+  The assumption in using a linear regression model is that each village is a 
+  separate case and each case is independent.  However, in this study 
+  each GP is associated with two villages, so there is a risk that the values for 
+  each village are not independent.
+
+  
+	
+%	\vspace{6cm}
+	\item [(c)] Interpret the coefficient estimate for reservation policy. 
+
+  The model suggests that 
+  There are more outliers in the reserved=1 cohort
+
+
+\end{enumerate}
 
 \newpage
 \appendix{Appendix - Code}
