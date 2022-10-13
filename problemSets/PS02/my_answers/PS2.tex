@@ -111,8 +111,11 @@
 	Calculate the expected values, then calculate the difference between the observed 
 	and expected values for each sub-category.  Calculate the contribution to the 
 	$\chi^2$ statistic. 
-	(expected = number in class * number of outcomes / total number;
-		difference = observed - expected; contribution = difference$^2$/expected) %\caret
+	\begin{description}
+	  \item[expected] number in class * number of outcomes / total number
+	  \item[difference] observed - expected
+	  \item[contribution] difference$^2$/expected) 
+	 \end{description}
 		
 		For example, for the sub-category `Upper Class' and `Not Stopped':
 	
@@ -130,14 +133,12 @@
 		\end{tabular}
 	\end{table}
 	
-	\lstinputlisting[language=R, firstline=77, lastline=108]{PS02.R}  
+	\lstinputlisting[language=R, firstline=75, lastline=103]{PS02.R}  
 
 	\item [(b)]
 	Now calculate the p-value from the test statistic you just created (in \texttt{R}).\footnote{Remember frequency should be $>$ 5 for all cells, but let's calculate the p-value here anyway.}  What do you conclude if $\alpha = 0.1$?\\
 	
-	% todo check cell minimum for chi-sq - expected only or all??
-	
-	\lstinputlisting[language=R, firstline=125, lastline=126]{PS02.R}  
+	\lstinputlisting[language=R, firstline=123, lastline=124]{PS02.R}  
 	
 	\begin{verbatim}
 	The p-value is 15.02%, alpha is 10%
@@ -148,8 +149,8 @@ same population
 
   The observed and expected values are shown in Figure~\ref{fig:obs_exp}	
 	\begin{figure}
-		  \includegraphics{obs_exp.png}
-		  \caption{Observed vs Expected values for traffic stop. ns = Not Stopped; sgw = Stopped Given Warning; br = Bribe Requested}\label{fig:obs_exp}
+		  \includegraphics{graphics/obs_exp.png}
+		  \caption{Observed vs Expected values for traffic stop. ns = Not Stopped; br = Bribe Requested; sgw = Stopped Given Warning}\label{fig:obs_exp}
 	\end{figure}
 
   The results of the builtin \texttt{R} chisq.test function are as follows:
@@ -174,6 +175,13 @@ X-squared = 3.7912, df = 2, p-value = 0.1502
     between the two groups appears to be a combination of fewer upper class drivers
     being expected to hand over bribes and more of them being given a warning instead 
     the opposite outcome occuring for lower class drivers.
+
+    We are not rejecting the null hypothesis, so we are concluding that there may
+    not be any significant relationship between class and the outcomes experienced 
+    during traffic stops.  The combined effect from the diffent experiences of the two 
+    groups was not enough to convince us that class predicts whether or not a driver
+    is asked for a bribe.
+    
     
   
 \end{enumerate}
@@ -220,46 +228,121 @@ below shows the names and descriptions of the variables in the dataset. The auth
 	\item [(b)] Bivariate regression to test this hypothesis:.
 
   Import the data.
-	\lstinputlisting[language=R, firstline=215, lastline=215]{PS02.R}  
+
+	\lstinputlisting[language=R, firstline=216, lastline=216]{PS02.R}  
+	
+  \begin{figure}[htb!]
+	\caption{\footnotesize{Drinking water projects, grouped by $reserved = [1,0]$}}
+	\vspace{.5cm}
+	\centering
+	\label{fig:water_reserved}
+	\includegraphics[width=1.0\textwidth]{graphics/resrvd_water.png}
+  \end{figure}		
+	
 	
   The analyis used  the builtin \texttt{R} function \texttt{lm} to investigate the 
   relationship 	between the number of new or repaired drinking water facilities in 
   the villages and the binary variable indicating whether the GP was reserved for 
   women leaders or not.
+  
 
-	\lstinputlisting[language=R, firstline=230, lastline=230]{PS02.R}  
-	
-	
-	This results in the following output:
+	\lstinputlisting[language=R, firstline=235, lastline=235]{PS02.R}  
+
+	This gives the following model results:
 	
 	\include{water_model.tex}
-  The 
-\begin{figure}[h!]
+
+  The estimate for $\beta_0$ is 14.738; the estimate for $\beta_1$ is 9.252, where 
+  $y = \beta_0 + \beta_1 * x $; the response variable ($y$) is the incidence of 
+  investment in drinking water projects; the explanatory variable ($x$) is 1 if 
+  the GP position is reserved for a woman, 0 otherwise.  The pvalue is 0.0197, so 
+  at a confidence level of 5\%, we reject the null hypothesis that the two 
+  variables are independent.
+
+
+%	\vspace{6cm}
+	\item [(c)] Interpret the coefficient estimate for reservation policy. 
+
+  We expect that where the GP position is not reserved for a female, the average
+  number of drinking water projects will be 14.738 and that this will increase by 
+  9.252 if the position is reserved.
+  
+  \end{enumerate}
+  
+  \subsection*{Caveats}  
+  
+  Code in Appendix.
+  
+  \subsubsection*{Outliers}
+	
+	On inspection, it is clear that the data, and the model, are significantly affected
+	by outliers (see Figure~\ref{fig:reserved_water_boxplot} and Table~\ref{tab:wateroutliers}).
+	
+  \begin{figure}[htb!]
 	\caption{\footnotesize{Boxplot of number of drinking water projects, grouped by reserved}}
 	\vspace{.5cm}
 	\centering
-	\label{fig:water_reserved}
-	\includegraphics[width=1.0\textwidth]{resrvd_water_boxplot.png}
-\end{figure}		
+	\label{fig:reserved_water_boxplot}
+	\includegraphics[width=1.0\textwidth]{graphics/resrvd_water_boxplot.png}
+  \end{figure}		
 	
+  \include{water_outliers.tex}
 
+  The data was modelled with outliers excluded and the results were as in 
+  Table~\ref{tab:noOutliers}
+  
+  The estimate for $\beta_0$ is 10.7035; the estimate for $\beta_1$ is -0.1571
+  (p-value = 0.9015).  Using this data, we cannot reject the hypothesis that 
+  water projects and reserved status are independent.  The expected number of 
+  drinking water projects decreases by 0.1571 if the village is reserved for a 
+  female GP.
+  
+  However, we have no data to support the idea that the outliers are bad data.  
+  We are more likely to conclude that the data is heavily skewed.
 
+  \include{outlier_model.tex}
+  
+  \subsubsection*{Villages}
+  
   The assumption in using a linear regression model is that each village is a 
   separate case and each case is independent.  However, in this study 
   each GP is associated with two villages, so there is a risk that the values for 
   each village are not independent.
-
   
+  As seen in Figure~\ref{fig:village_boxplot}, the profile for the two sets of data 
+  has some differences, mainly the extra high values of the outliers in the 
+  $village == 2$ dataset.
+  
+  \begin{figure}[htb!]
+	\caption{\footnotesize{Drinking water projects, grouped by Village}}
+	\vspace{.5cm}
+	\centering
+	\label{fig:village_boxplot}
+	\includegraphics[width=1.0\textwidth]{graphics/village_water_boxplot.png}
+  \end{figure}		
 	
-%	\vspace{6cm}
-	\item [(c)] Interpret the coefficient estimate for reservation policy. 
+  A $\chi^2$ test was run on binned values, and this did not reject the hypothesis
+  that the two samples were from the same population.
+  
+  \begin{verbatim}
+    	Pearson's Chi-squared test
 
-  The model suggests that 
-  There are more outliers in the reserved=1 cohort
+    data:  one_counts and two_counts
+    X-squared = 12, df = 9, p-value = 0.2133
+  \end{verbatim}
+  
+  The linear model with the two villages combined (so our units are now GPs, not 
+  villages), gives the same expected values, but with lower confidence as we now 
+  have fewer data points.  When the two sets of villages are considered separately
+  the estimate for $\beta_1$ is 5.130 for $village==1$ (p-value = 0.2506) and 
+  13.374 for $village==2$ (pvalue = 0.04172).
+  
+  This suggests that splitting or combining our data by village does not add greatly
+  to our information about whether $reserved$ is a predictor for $water$. 
 
-
-\end{enumerate}
-
+  \include{village_model.tex}
+  
+  
 \newpage
 \appendix{Appendix - Code}
 	\lstinputlisting[language=R]{PS02.R}  

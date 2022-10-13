@@ -64,11 +64,9 @@ observed  <- matrix( c (14, 6, 7, 7, 7, 1), nrow = 2, byrow = TRUE)
 cols <- c("NotStopped", "BribeRequested",  "StoppedGivenWarning")
 rows <- c("UpperClass", "LowerClass")
 
-#observed_df <- data.frame(observed, row.names = rows)
-#names(observed_df) <- cols
-#print(observed_df)
+observed  <- matrix( c (14, 6, 7, 7, 7, 1), nrow = 2, byrow = TRUE) 
 
-pairs(observed)
+#plot(jitter(observed))
 
 #\item [(a)]
 #Calculate the $\chi^2$ test statistic by hand/manually\\
@@ -89,6 +87,7 @@ for (i in 1:ncols) {col_tots[i] <- sum(observed[, i])}
 
 #get expected = row total * column total / total observations
 expected <- observed
+
 for (i in 1:nrows) {
   for (j in 1:ncols) {
     expected[i,j] <- row_tots[i] * col_tots[j] / totals
@@ -97,11 +96,7 @@ for (i in 1:nrows) {
 
 # calculate difference between observed and expected
 o_e <- observed 
-for (i in 1:nrows) {
-  for (j in 1:ncols) {
-    o_e[i,j] <- (observed[i,j] - expected[i,j])^2 / expected[i,j]
-  }
-}
+o_e <- (o_e - expected)^2 / expected
 
 #calculate chi-squared value & degrees of freedom
 chi_sq_val <- sum(o_e)
@@ -111,11 +106,14 @@ cat(str_glue("The chi_squared statistic is {round(chi_sq_val,3)}"))
 cat(str_glue("The chi_squared degrees of freedom is {df}"))
 
 # plot of observed and expected values
-png("obs_exp.png")
+png("graphics/obs_exp.png")
 barplot(cbind(expected, observed ), legend.text = rows, 
         names.arg = c("ns", "br", "sgw", "ns",  "br", "sgw"),
+        args.legend = list(x = "topright"),
+        main = "Traffic Stops", beside = TRUE, col = c("green", "red"),
         xlab = "Observed   -    Expected")
 dev.off()
+
 
 #\item [(b)]
 #Now calculate the p-value from the test statistic you just created R
@@ -135,7 +133,6 @@ cat(str_glue("The p-value is {round(p_value*100,2)}%, alpha is {alpha*100}%."))
 cat(str_glue("We {txt}reject the null hypothesis that the two sets are from the\n same population."))
 cat(str_glue("note: {cells_under} observed cell(s) with less than 5 values."))
 
-
 #	\item [(c)] Calculate the standardized residuals for each cell and put them in the table below.
 
 z <- observed 
@@ -146,7 +143,8 @@ for (i in 1:nrows) {
     z[i,j] <- (observed[i,j] - expected[i,j])  /sqrt (expected[i,j]* row_prop * col_prop)
   }
 }
-z_df <- data.frame(z, row.names = rows)
+
+z_df <- data.frame(round(z,3), row.names = rows)
 names(z_df) <- cols
 
 print(z_df)
@@ -155,10 +153,9 @@ print(z_df)
 output_stargazer(z_df, outputFile="std_residuals.tex", type = "latex",
                  appendVal=FALSE, 
                  title="Standardised Residuals", 
-                 digits=2, 
                  summary = FALSE,
                  style = "apsr",
-                 table.placement = "h",
+                 table.placement = "htb",
                  label = "StandardisedResiduals",
                  rownames = TRUE
                  )
@@ -166,8 +163,10 @@ output_stargazer(z_df, outputFile="std_residuals.tex", type = "latex",
 
 # check result
 chisq.test(observed)
+#	Pearson's Chi-squared test
 
-#https://www.rdocumentation.org/packages/stargazer/versions/5.2.3/topics/stargazer
+#data:  observed
+#X-squared = 3.7912, df = 2, p-value = 0.1502
 
 #	\item [(d)] How might the standardized residuals help you interpret the results?  
 
@@ -214,18 +213,24 @@ chisq.test(observed)
 #  correlated to the reservation policy
 
 
-policy <- read.csv("https://raw.githubusercontent.com/kosukeimai/qss/master/PREDICTION/women.csv")
+policy <- read_csv("https://raw.githubusercontent.com/kosukeimai/qss/master/PREDICTION/women.csv")
 #write.csv(policy,"Data/policy.csv")
 policy<-read_csv("Data/policy.csv")
 
 summary(policy)
+
+plot(policy$water)
+boxplot(policy$water)
+# lots of outliers, distribution is skewed right (mean > median)
+
+plot(policy$water, policy$irrigation)
+
 pairs(policy[4:7])
 
-sum(policy$reserved)
-sum(policy$female)
+sum(policy$reserved)   # 108 of 322 villages have reserved GP (54 GPs)
+sum(policy$female)     # 124 of 322 villages have female GP (62 GPs)
 
-
-#\item [(b)] Run a bivariate regression to test this hypothesis in \texttt{R} (include your code!).
+#\item [(b)] Run a bivariate regression to test this hypothesis 
 
 water <- lm(water ~ reserved , data = policy)
 summary(water)
@@ -234,35 +239,106 @@ output_stargazer(water, outputFile="water_model.tex", type = "latex",
                  appendVal=FALSE, 
                  title="Pearson Linear Regression - Water ~ Reserved", 
                  style = "apsr",
-                 label = "water_reserved"
+                 table.placement = "htb",
+                 label = "model:water_reserved"
 )
 
+#-------------------------------------
+
+cor(policy$water, policy$reserved)  # .1299
+# water increases with increase in reserved (ie reserved = TRUE), not strong
+
 p<- ggplot(policy, aes(reserved, water, colour=female, group_by(female))) 
-p + geom_jitter()
-ggsave("resrvd_water.png")
+p + geom_jitter() +
+  scale_x_continuous(breaks = seq(0, 1, by = 1)) +
+  scale_color_continuous(breaks = seq(0, 1, by = 1)) +
+  labs(title ="incidence of new or repaired drinking-water facilities",
+       x = "Reserved for Female GP (1= TRUE)",
+       caption = "Chattopadhyay and Duflo (2004)",
+       alt = "Boxplot of incidence of new or repaired drinking-water facilities, by reserved [1,0]",
+  )
+ggsave("graphics/resrvd_water.png")
+
+##==========================================================================
+# consider outliers
 
 p<- ggplot(policy, aes(reserved, water, group_by(reserved))) 
-p + geom_boxplot( outlier.size = 3, aes(group=reserved))
-ggsave("resrvd_water_boxplot.png")
+p + geom_boxplot( aes(group=reserved)) +
+  scale_x_continuous(breaks = seq(0, 1, by = 1)) +
+  labs(title ="incidence of new or repaired drinking-water facilities",
+     x = "Reserved for Female GP (1= TRUE)",
+     caption = "Chattopadhyay and Duflo (2004)",
+     alt = "Boxplot of incidence of new or repaired drinking-water facilities, by reserved [1,0]",
+)
+ggsave("graphics/resrvd_water_boxplot.png")
+
+outliers_tbl <- policy %>% 
+  group_by(reserved) %>%
+  mutate(iqr = IQR(water), q3 = quantile(water, .75), outlier_limit = q3 + iqr * 1.5 ) %>%
+  filter(water > outlier_limit )  %>%
+  mutate(mean_water = round(mean(water),3), count_water = n()) %>%
+  select(reserved, mean_water, count_water, q3, iqr, outlier_limit) %>%
+  unique()
+
+#reserved mean_water count_water    q3   iqr outlier_limit
+#<dbl>      <dbl>       <int> <dbl> <dbl>         <dbl>
+#  1        0       68.3          15  20    17            45.5
+#  2        1      143.           11  20.2  16.2          44.6
 
 
-# there are more outliers in the reserved=1 cohort
+output_stargazer(outliers_tbl, outputFile="water_outliers.tex", type = "latex",
+                 appendVal=FALSE, 
+                 title="Outliers in water incidence", 
+                 summary = FALSE,
+                 style = "apsr",
+                 digits= 3,
+                 table.placement = "htb",
+                 label = "tab:wateroutliers",
+                 rownames = FALSE
+)
 
+
+# there are fewer outliers in the reserved=1 cohort, but their average
+# value is significantly higher
+
+no_outlier_water <- policy %>% 
+  group_by(reserved) %>%
+  mutate(outlier_limit = quantile(water, .75) + IQR(water) * 1.5) %>%
+  ungroup() %>%
+  filter(water <= outlier_limit) 
+
+outlier_model <-lm(water ~ reserved , data = no_outlier_water)
+
+output_stargazer(outlier_model, outputFile="outlier_model.tex", type = "latex",
+                 appendVal=FALSE, 
+                 title="Pearson Linear Regression - Water ~ Reserved - excluding outliers", 
+                 style = "apsr",
+                 table.placement = "htb",
+                 label = "tab:noOutliers"
+)
+
+summary(outlier_model)
+
+
+# coefficient for beta0 goes to -0.1571 - with no significance 
+# (p-value is 0.9015, df= 294)
+# same result if exclude sample outliers (ie not by reserved)
+##==============================================================
 # assumption is that each village is a separate case and each case is independent
 # but, each GP relates to 2 villages - need to check for impact of combining villages
 
-
+# inspect data
 p<- ggplot(policy, aes(reserved, water, group_by(reserved))) 
 p + geom_boxplot( outlier.size = 3, aes(group=reserved)) +
+  scale_x_continuous(breaks = seq(0, 1, by = 1)) +
+  labs(title ="incidence of new or repaired drinking-water facilities",
+       subtitle = "village identifier = [1,2]",
+       x = "Reserved for Female GP (1= TRUE)",
+       caption = "Chattopadhyay and Duflo (2004)",
+       alt = "Boxplot of incidence of new or repaired drinking-water facilities, by reserved [1,0]",
+  ) +
   facet_wrap(policy$village)
-ggsave("village_water_boxplot.png")
-
-
-policy %>%  
-  group_by(reserved, village) %>% 
-  summarise(n = n(), sum_water = sum(water)) %>%
-  mutate(prop_reserved = round(n / sum(n), 4), sum_water) %>% # mutate after our summarise to find the proportion
-  arrange(desc(prop_reserved))
+ggsave("graphics/village_water_boxplot.png")
 
 reserved_water_tab <- policy %>%  
   group_by(reserved) %>% 
@@ -272,29 +348,11 @@ reserved_water_tab <- policy %>%
   arrange(desc(prop_reserved))
 
 str(reserved_water_tab)
-
 reserved_water_tab
-
 
 sum(policy$water)
 
-
-# todo document ignoring the paired village phenomenon??
-# or combine the villages 
-
-combined_village_policy <- policy %>%  
-  group_by(GP) %>% 
-  mutate (sum_water = sum(water), sum_irrigation = sum(irrigation)) %>%
-  select(GP, reserved, female, sum_water, sum_irrigation) %>%
-  unique()
-
-
-cvp <- lm(sum_water/2 ~ reserved, data = combined_village_policy)
-
-
-summary(cvp)
-
-
+# see if villages are from same population
 one_village_policy <- policy %>%  
   group_by(GP) %>% 
   filter(village ==1)
@@ -304,74 +362,86 @@ two_village_policy <- policy %>%
   filter(village ==2)
 
 
-#todo - work out how to bin data
-chisq.test(x = one_village_policy$water, y = two_village_policy$water)
-chisq_12 <- chisq.test(x = one_village_policy$water, y = two_village_policy$water)
+hist(one_village_policy$water)$counts
+#[1] 130  16   8   3   0   0   1   2   0   1
+hist(two_village_policy$water)$counts
+#[1] 146  13   0   0   0   0   2
+hist(one_village_policy$water)$breaks
+#[1]   0  20  40  60  80 100 120 140 160 180 200
+
+# coerce counts of water variable into suitably sized bins
+one_counts <- hist(one_village_policy$water, breaks = c(0, 20, 40, 60, 350))$counts
+two_counts <- hist(two_village_policy$water, breaks = c(0, 20, 40, 60, 350))$counts
+# run chisq test - null: both from same population
+
+chi_village <- chisq.test(one_counts, two_counts)
 
 
+villagetab <- matrix(c(one_counts, two_counts),  nrow = 2,  byrow = TRUE)
+chi_village
 
-t.test(x = policy$water, y = one_village_policy$water,var.equal = FALSE, conf.level = 0.1)
-
-#	Welch Two Sample t-test
-
-#data:  policy$water and one_village_policy$water
-#t = 0.78558, df = 392.33, p-value = 0.4326
-#alternative hypothesis: true difference in means is not equal to 0
-#10 percent confidence interval:
-#  1.859858 2.568713
-#sample estimates:
-#  mean of x mean of y 
-#17.84161  15.62733 
-
-t.test(x = policy$water, y = two_village_policy$water,var.equal = FALSE, conf.level = 0.1)
-#Welch Two Sample t-test#
-
-#data:  policy$water and two_village_policy$water
-#t = -0.61008, df = 279.55, p-value = 0.5423
-#alternative hypothesis: true difference in means is not equal to 0
-#10 percent confidence interval:
-#  -2.670789 -1.757783
-#sample estimates:
-#  mean of x mean of y 
-#17.84161  20.05590 
-
-
-t.test(x = one_village_policy$water, y = two_village_policy$water,var.equal = FALSE, conf.level = 0.1)
-#
-#Welch Two Sample t-test
-#
-#data:  one_village_policy$water and two_village_policy$water
-#t = -1.1805, df = 281.19, p-value = 0.2388
-#alternative hypothesis: true difference in means is not equal to 0
-#10 percent confidence interval:
-#  -4.900404 -3.956738
-#sample estimates:
-#  mean of x mean of y 
-#15.62733  20.05590 
-
-
-village <- lm(water ~ village , data = policy)
-summary(village)
-
-output_stargazer(village, outputFile="village_water_model.tex", type = "latex",
+output_stargazer(tibble(villagetab), outputFile="village_bins.tex", type = "latex",
                  appendVal=FALSE, 
-                 title="Pearson Linear Regression - Water ~ Village", 
+                 title="Binned data for village dataset comparison", 
+                 summary = FALSE,
                  style = "apsr",
-                 label = "water_village"
+                 table.placement = "htb",
+                 label = "tab:villageBins",
+                 rownames = TRUE
 )
 
-###---------------------------------------------------------------------------
 
-water_female <- lm(water ~ female , data = policy)
+# 	Pearson's Chi-squared test
 
-summary(water_female)
+#data:  one_counts and two_counts
+#X-squared = 12, df = 9, p-value = 0.2133
 
-plot(water)
-#\item [(c)] Interpret the coefficient estimate for reservation policy. 
-  
-with(policy, plot(water, reserved))
-p<- ggplot(policy)
-p+ geom_jitter(aes(reserved, water, colour=female))
 
-p<- ggplot(policy, aes(reserved, water), colour=female) + geom_jitter()
-p+ facet_wrap(vars(female))
+#tibble(`village1` = one_counts,`village2`= two_counts )
+
+# run regression model on each set of villages 
+one_model <- lm(water ~ reserved, data = one_village_policy)
+two_model <- lm(water ~ reserved, data = two_village_policy)
+
+summary(one_model)
+summary(two_model)
+
+output_stargazer(one_model, outputFile="village_model.tex", type = "latex",
+                 appendVal=FALSE, 
+                 title="Pearson Linear Regression - Water ~ Reserved - Village = 1", 
+                 style = "apsr",
+                 table.placement = "htb",
+                 label = "tab:village1"
+)
+
+output_stargazer(two_model, outputFile="village_model.tex", type = "latex",
+                 appendVal=TRUE, 
+                 title="Pearson Linear Regression - Water ~ Reserved - Village = 2", 
+                 style = "apsr",
+                 table.placement = "htb",
+                 label = "tab:village2"
+)
+
+
+# or combine the villages 
+
+combined_village_policy <- policy %>%  
+  group_by(GP) %>% 
+  mutate (sum_water = sum(water), sum_irrigation = sum(irrigation)) %>%
+  select(GP, reserved, female, sum_water, sum_irrigation) %>%
+  unique()
+
+# run model - scaled by 1/2 to get equivalent values to 1 village coefficients
+cvp <- lm(sum_water/2 ~ reserved, data = combined_village_policy)
+
+summary(cvp)
+
+output_stargazer(cvp, outputFile="villages_combined.tex", type = "latex",
+                 appendVal=FALSE, 
+                 title="Pearson Linear Regression - Water ~ Reserved - Villages combined", 
+                 style = "apsr",
+                 table.placement = "htb",
+                 label = "tab:combinedVillages"
+)
+
+
