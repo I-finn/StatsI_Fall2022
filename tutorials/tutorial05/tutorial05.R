@@ -173,7 +173,7 @@ dat %>%
   mutate(month = month.abb[thtr_rel_month]) %>% 
   group_by(month) %>% 
   summarise(n = n()) %>%
-  mutate(prop_month = round(n / sum(n), 2)) %>% # mutate after our summarise to find the proportion
+  mutate(prop_month = round(n / sum(n), 3)) %>% # mutate after our summarise to find the proportion
   arrange(desc(prop_month))
 
 ##########
@@ -224,7 +224,7 @@ dat %>%
   summarise(n = n()) %>% # get a raw count for each group
   pivot_wider(names_from = horror, values_from = n) %>% # change the shape of our data
   ungroup() %>%
-  mutate(All = round(`FALSE` / sum(`FALSE`), 2), # calculate proportions for all films
+  mutate(All = round(`FALSE` / sum(`FALSE`), 3), # calculate proportions for all films
          Horror = `TRUE` / sum(`TRUE`, na.rm = TRUE)) %>% # calculate proportions for horror films
   select(thtr_rel_month, All, Horror) %>% # drop all other columns
   pivot_longer(cols = c("All", "Horror"), names_to = "film_type") %>% # change the shape again!
