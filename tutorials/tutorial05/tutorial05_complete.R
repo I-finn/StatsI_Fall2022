@@ -168,7 +168,7 @@ dat %>%
   mutate(month = month.abb[thtr_rel_month]) %>% 
   group_by(month) %>% 
   summarise(n = n()) %>%
-  mutate(prop_month = round(n / sum(n), 2)) %>% # mutate after our summarise to find the proportion
+  mutate(prop_month = round(n / sum(n), 3)) %>% # mutate after our summarise to find the proportion
   arrange(desc(prop_month))
 
 ##########
@@ -183,7 +183,7 @@ dat %>%
   mutate(month = month.abb[thtr_rel_month]) %>% 
   group_by(month) %>% 
   summarise(n = n()) %>%
-  mutate(prop_month = round(n / sum(n), 2)) %>% # mutate after our summarise to find the proportion
+  mutate(prop_month = round(n / sum(n), 3)) %>% # mutate after our summarise to find the proportion
   arrange(desc(prop_month))
 
 #############
@@ -206,7 +206,7 @@ dat %>%
   summarise(n = n()) %>% # get a raw count for each group
   pivot_wider(names_from = horror, values_from = n) %>% # change the shape of our data
   ungroup() %>%
-  mutate(All = round(`FALSE` / sum(`FALSE`), 2), # calculate proportions for all films
+  mutate(All = round(`FALSE` / sum(`FALSE`), 3), # calculate proportions for all films
          Horror = `TRUE` / sum(`TRUE`, na.rm = TRUE)) %>% # calculate proportions for horror films
   select(thtr_rel_month, All, Horror) %>% # drop all other columns
   pivot_longer(cols = c("All", "Horror"), names_to = "film_type") %>% # change the shape again!
@@ -245,3 +245,39 @@ dat %>%
        subtitle = "Feature Films", 
        x = "Release Year", 
        y = "Average Running Time (minutes)")
+
+#######
+# Extra
+#######
+
+# Are films that win best picture awards longer than average? 
+# How would we test for statistical significance?
+
+# 1. Are they longer?
+with(dat[dat$best_pic_win == "yes",], mean(runtime))
+with(dat, mean(runtime, na.rm = TRUE))
+
+#2. Is the difference statistically significant?
+#a) what is our sample size of "winners"?
+nrow(dat[dat$best_pic_win == "yes",])
+#b) Is it below 30?
+nrow(dat[dat$best_pic_win == "yes",]) < 30
+#c) So what test do we perform..?
+t.test(x = dat[dat$best_pic_win == "yes", "runtime"], # our "different" mean
+       alternative = "greater", # we think winning films are longer, so the mean should be greater
+       conf.level = 0.95, # set our confidence level to 95%
+       mu = mean(dat[,"runtime"], na.rm = TRUE)) # our "population" mean (estimated from our sample)
+#d) How about if we didn't have reason to believe they were longer,
+# but that they could also be shorter..?
+t.test(x = dat[dat$best_pic_win == "yes", "runtime"],
+       alternative = "two.sided", # checking both sides now, so 2.5% threshold on each side
+       conf.level = 0.95,
+       mu = mean(dat[,"runtime"], na.rm = TRUE))
+
+# Our critical values (t scores) with 6 degrees of freedom:
+qt(0.95, df = 6) # in a one-sided test, 5% is all on one side means our critical value is lower.
+qt(0.975, df = 6) # in a two-sided test, 2.25% on each side means we need a bigger t value to pass our critical value!
+
+# Note that I didn't use dplyr for any of these operations; with 
+# base R programming skills, I didn't need to - I could simply 
+# perform the necessary subsetting within the t.test() function.
