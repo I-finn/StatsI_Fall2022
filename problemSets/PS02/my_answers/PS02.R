@@ -64,10 +64,6 @@ observed  <- matrix( c (14, 6, 7, 7, 7, 1), nrow = 2, byrow = TRUE)
 cols <- c("NotStopped", "BribeRequested",  "StoppedGivenWarning")
 rows <- c("UpperClass", "LowerClass")
 
-observed  <- matrix( c (14, 6, 7, 7, 7, 1), nrow = 2, byrow = TRUE) 
-
-#plot(jitter(observed))
-
 #\item [(a)]
 #Calculate the $\chi^2$ test statistic by hand/manually\\
 
@@ -156,7 +152,7 @@ output_stargazer(z_df, outputFile="std_residuals.tex", type = "latex",
                  summary = FALSE,
                  style = "apsr",
                  table.placement = "htb",
-                 label = "StandardisedResiduals",
+                 label = "tab:StandardisedResiduals",
                  rownames = TRUE
                  )
 
@@ -231,22 +227,139 @@ sum(policy$reserved)   # 108 of 322 villages have reserved GP (54 GPs)
 sum(policy$female)     # 124 of 322 villages have female GP (62 GPs)
 
 #\item [(b)] Run a bivariate regression to test this hypothesis 
+water <- policy$water               # ie y = response var
+reserved <- policy$reserved         # ie x = explanatory var
 
-water <- lm(water ~ reserved , data = policy)
-summary(water)
+mean_water <- mean(water)
+mean_reserved <- mean(reserved)
 
-output_stargazer(water, outputFile="water_model.tex", type = "latex",
+n <- length(water)
+
+# calculate sum of squares for reserved and water
+ssxx <- sum((reserved - mean_reserved)^2)
+ssyy <- sum((water - mean_water)^2)
+ssxy <- sum((reserved - mean_reserved)*(water - mean_water) )
+# calculate covariance
+covxy <- ssxy / n
+# check result
+cov(x = reserved, y = water, method = "pearson")
+#calculate correlation coefficient
+corxy <- ssxy / sqrt(ssxx * ssyy)
+
+#calculate estimates for coefficients 
+beta1 <- ssxy / ssxx
+beta0 <- mean_water- mean_reserved*beta1
+
+# calculate standard error values
+sse <- sum((water-(beta0 + beta1*reserved))^2)
+se <- sqrt(sse / (n-2))
+
+# calculate standard errors for coefficients
+s_beta1 <- se * sqrt(1/ssxx)
+s_beta0 <- se * sqrt((1/n + mean_reserved ^2 / ssxx))
+
+# calculate the t-test statistics for coefficients
+t_beta1 <- beta1 / s_beta1
+t_beta0 <- beta0 / s_beta0
+
+# calculate r^2 and p values
+r2 <- 1 - (sse / ssyy)
+p_beta1 <- 2*pt(t_beta1, df=n-2, lower.tail = FALSE)
+p_beta0 <- 2*pt(t_beta0, df=n-2, lower.tail = FALSE)
+
+# output results as two tables
+cols <- c("estimate ", "Std Error",  "t value", "pr(>|t|)")
+rows <- c("intercept", "reserved")
+
+beta_vals <- data.frame(matrix(c(round(beta0, 3), round(s_beta0, 3),
+                  round(t_beta0, 3), p_beta0,  
+                  round(beta1, 3), round(s_beta1, 3), round(t_beta1, 3), p_beta1), 
+                     nrow = 2, byrow = TRUE), row.names = rows)
+
+names(beta_vals) <- cols
+
+print(beta_vals)
+
+# output results for beta values to .tex file
+output_stargazer(beta_vals, outputFile="policy_model.tex", type = "latex",
+                 appendVal=FALSE, 
+                 title="coefficients for linear regression model water - reserved ", 
+                 summary = FALSE,
+                 style = "apsr",
+                 table.placement = "htbp!",
+                 label = "tab:coefficients",
+                 rownames = TRUE
+)
+
+result_vals <- tibble(`residual error`= round(se, 4), `degrees of freedom`= n-2, 
+                      `R^2`= round(r2, 4), `covariance`= round(covxy,4),
+                      `correlation`= round(corxy,4))
+
+
+
+output_stargazer(result_vals, outputFile="policy_model.tex", type = "latex",
+                 appendVal=TRUE, 
+                 title="results for linear regression model water - reserved ", 
+                 summary = FALSE,
+                 style = "apsr",
+                 label = "tab:results",
+                 rownames = FALSE
+)
+
+result_cols <- tibble(round(se, 4), n-2, round(r2, 4), 
+                      round(covxy,4), round(corxy,4))
+names(result_cols) <- c("residual error", "degrees of freedom", "R^2",
+                        "covariance","correlation")
+
+#check r^2
+r<-cov(reserved, water) / (sd(reserved)* sd(water))
+
+#check correlation coefficient
+cor(policy$water, policy$reserved)  # .1299
+# water increases with increase in reserved (ie reserved = TRUE), not strong
+
+
+output_stargazer(water_model, outputFile="water_model.tex", type = "latex",
                  appendVal=FALSE, 
                  title="Pearson Linear Regression - Water ~ Reserved", 
                  style = "apsr",
-                 table.placement = "htb",
+                 table.placement = "htbp!",
+                 label = "model:water_reserved"
+)
+
+
+
+water_model <- lm(water ~ reserved , data = policy)
+summary(water_model)
+#Residuals:
+#Min      1Q  Median      3Q     Max 
+#-23.991 -14.738  -7.865   2.262 316.009 
+
+#Coefficients:
+#  Estimate Std. Error t value Pr(>|t|)    
+#(Intercept)   14.738      2.286   6.446 4.22e-10 ***
+#  reserved       9.252      3.948   2.344   0.0197 *  
+#  ---
+#  Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+#Residual standard error: 33.45 on 320 degrees of freedom
+#Multiple R-squared:  0.01688,	Adjusted R-squared:  0.0138 
+#F-statistic: 5.493 on 1 and 320 DF,  p-value: 0.0197
+
+
+
+output_stargazer(water_model, outputFile="water_lm.tex", type = "latex",
+                 appendVal=FALSE, 
+                 title="Pearson Linear Regression - Water ~ Reserved", 
+                 style = "apsr",
+                 table.placement = "htbp!",
                  label = "model:water_reserved"
 )
 
 #-------------------------------------
 
-cor(policy$water, policy$reserved)  # .1299
-# water increases with increase in reserved (ie reserved = TRUE), not strong
+
+
 
 p<- ggplot(policy, aes(reserved, water, colour=female, group_by(female))) 
 p + geom_jitter() +
@@ -292,7 +405,7 @@ output_stargazer(outliers_tbl, outputFile="water_outliers.tex", type = "latex",
                  summary = FALSE,
                  style = "apsr",
                  digits= 3,
-                 table.placement = "htb",
+                 table.placement = "htbp!",
                  label = "tab:wateroutliers",
                  rownames = FALSE
 )
@@ -313,7 +426,7 @@ output_stargazer(outlier_model, outputFile="outlier_model.tex", type = "latex",
                  appendVal=FALSE, 
                  title="Pearson Linear Regression - Water ~ Reserved - excluding outliers", 
                  style = "apsr",
-                 table.placement = "htb",
+                 table.placement = "htbp!",
                  label = "tab:noOutliers"
 )
 
@@ -385,7 +498,7 @@ output_stargazer(tibble(villagetab), outputFile="village_bins.tex", type = "late
                  title="Binned data for village dataset comparison", 
                  summary = FALSE,
                  style = "apsr",
-                 table.placement = "htb",
+                 table.placement = "htbp!",
                  label = "tab:villageBins",
                  rownames = TRUE
 )
@@ -445,3 +558,8 @@ output_stargazer(cvp, outputFile="villages_combined.tex", type = "latex",
 )
 
 
+# refs
+
+# Foundations of Statistics for Data Scientists; with R and Python
+# https://en.wikipedia.org/wiki/Least_squares
+# 
