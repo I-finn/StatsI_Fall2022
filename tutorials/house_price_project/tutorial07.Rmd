@@ -1,0 +1,46 @@
+---
+title: 'Tutorial Guide for Stats I Wk 7'
+author: "Martyn Egan"
+date: "2022-11-02"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# House Price Prediction Project
+
+Now that we have an idea about the basic skills involved in data science, we will be using the second half of term to work collaboratively on a real-world data science problem: how to accurately predict house prices. 
+
+The `house_sales.csv` dataset is adapted from the King County (Seattle) tax assessors database, available in the "Practical Statistics for Data Scientists" (O'Reilly) book. It contains prices for 22687 houses, alongside a series of additional variables including size of property, the year the property was built, etc. 
+
+Our ultimate goal is to find the best prediction of our outcome variable, `AdjSalePrice`. We will do that by developing a model which uses predictor variables that are significantly associated with our outcome. We will then test our model against a "holdout" set of data, to see how well it performs. 
+
+Before we can do that, however, we need to explore our data and perhaps manipulate it into the right format. That will be today's task.
+
+## Learning Outcomes
+
+The house price prediction project will last for five weeks and cover a variety of skills. In general, the project will:
+
+1. Provide you with experience of working collaboratively toward a specific data science goal.
+2. Introduce you to the prediction-oriented framework of data science, including the concepts of train/test split.
+3. Give further opportunity to practice the data science workflow (transform, visualise, model, communicate).
+
+This week's class will focus on the following specific outcomes:
+
+1. Setting up a team project.
+2. Importing and exploring a dataset.
+3. Reporting your initial results.
+
+## Today's Workflow
+
+You will work in the same groups of four throughout this five-week project. Your first task is to read the `problem_statement.pdf`, and to think in your team about how you will approach this project. What systems will you need to put in place to work collaboratively? How will you organise your workflow? Remember, project management is an iterative process, and you will need to reassess your approach as you go along.
+
+Once you have an idea how you will organise yourselves, take a look at your data. The `house_sales.csv` is available on github [here](https://raw.githubusercontent.com/gedeck/practical-statistics-for-data-scientists/master/data/house_sales.csv). You will need to work out how to import this data into R Studio before you can do anything else with it.
+
+Once you have successfully imported the data, your first job is to explore it. Use the remainder of today's class to perform exploratory data analysis (EDA) on the dataset. Remember that your use of EDA should be guided by your ultimate goal: predicting house prices. 
+
+**Do not** perform formal modelling at this stage, but use your skills in data manipulation and visualisation to discover what is interesting about the data, and how the different variables relate to each other. This insight will help guide your modelling decisions in future weeks.
+
+At the end of class, pick one visualisation which you think shows something interesting about the data, and upload it to the class discussion board on Blackboard. Include in your post a brief explanation of what your visualisation shows, and how you produced it.
