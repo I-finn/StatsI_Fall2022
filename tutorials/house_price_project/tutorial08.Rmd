@@ -1,0 +1,143 @@
+---
+title: "Tutorial Guide for Stats I Wk 8"
+author: "Martyn Egan"
+date: "2022-11-09"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(stargazer)
+library(broom)
+```
+
+## This Week's Class
+
+Last week we introduced the housing price dataset from King County, Seattle, which you will be working on over the coming weeks with the goal of finding the best model to predict house prices. Having spent last week familiarising ourselves with the data, this week we will move on to modelling using multiple linear regression.
+
+## Learning Outcomes
+
+As well as the ongoing outcomes outlined last week, this week's class will focus on the following specific goals:
+
+1.  Learn different methods for performing and interpreting a multiple linear regression model in R.
+2.  Learn how to organise MLR models.
+3.  Create workflows through to visualisation.
+
+## Multiple Linear Regression
+
+### What is MLR?
+
+MLR generalises the concept of bivariate regression to additional predictor (or independent) variables. It can be difficult to get your head around what exactly is going on in MLR, and the maths (which relies on linear algebra and calculus) gets very complex very quickly. Our goal in these classes is to get an intuitive grasp of what is happening, so we can understand how to interpret models and troubleshoot problems.
+
+In a nutshell, MLR answers the question "what value can I expect my outcome variable to have, given predictor variables with the following values?" In our case, we want to predict house prices, so our question becomes "what house price can I expect, given a specific zipcode, lot size, building type, etc.?" The MLR process returns us a model, or equation, in the form of:
+
+<center>$\hat{y} = b_0 + b_1x_1 + ... + b_nx_n + e$</center>
+
+\n
+
+Where $\hat{y}$ is the (predicted) outcome, $b_0$ is the (estimated) intercept, $b_1$ through $b_n$ are the (estimated) slope coefficients, $x_1$ through $x_n$ are predictor variables, and $e$ is the error term, or "noise" in the data.
+
+It is important to highlight that regression is used for very different purposes. In the social sciences, we are most often interested in estimating the "size of effect", that is the $b$ coefficients, and whether or not they are statistically significant. In industry, the goal is more often achieving the most accurate prediction, or $\hat{y}$. In this case, statistical significance is of little importance (nor indeed other issues associated with estimating coefficients, such as collinearity). What matters more is the average prediction error, often measured in terms of root-mean-square error (RMSE). Reducing the size of RMSE is often the main goal in prediction-oriented regression, as opposed to statistical significance in estimation-oriented regression.
+
+### Multiple Linear Regression in R
+
+Performing multiple linear regression in R is relatively uncomplicated, and can be done using the `lm()` function with which you are already familiar. We simply extend the first `formula` argument to include additional variables. In the examples below, we use a dataset on academic salaries 🙃
+
+```{r salary data}
+dat <- readRDS("data/example.rds")
+boxplot(Salary_9_mo ~ Gender, data = dat)
+```
+
+Our dataset contains variables for salary, grants won, gender, department and grade. Is winning grants associated with a higher salary? We can use the `lm()` function to find out.
+
+```{r bivariate regression, results = "asis"}
+mod1 <- lm(Salary_9_mo ~ Avg_Cont_Grants, data = dat)
+stargazer(mod1, type = "html", title = "Salary and Grant Contribution")
+```
+\
+
+Here, we're using the `stargazer` package to create a nicely formatted regression table, which contains our model and all of the information we need to interpret it. If you want to use `stargazer` to produce your own regression tables, I recommend you read the help file and take a look at the markdown code for this document: note the `results = "asis"` argument in the code chunk header, and the argument `type = "html"` in the call to `stargazer()`. This is for html in an r markdown file. If you want to use stargazer in Latex, there is a different procedure.
+
+Interpreting this model, we could say that every dollar won in grants adds, on average, about a cent to an academic's salary. Both grant contribution and the intercept, average salary, are significant at the 0.01 level.
+
+But how about if we want to add gender to the picture? Does the same effect observed in the boxplot above carry through when we factor in grant contribution? Let's first try to visualise this using ggplot.
+
+```{r gender}
+ggplot(dat, aes(Avg_Cont_Grants, Salary_9_mo, group = Gender)) +
+  geom_point(alpha = 0.5, aes(colour = Gender)) +
+  geom_smooth(method = "lm", aes(colour = Gender))
+```
+
+How do we interpret this scatter plot? Thinking about our regression formula, there are two ways of specifying gender in our model. We could think of it in terms of a change to our intercept ($b_0$), or as a change to both our intercept and our slope coefficients. By default, ggplot gives us the second of these, which is why our lines have different slopes. But what if we wanted to model gender just as a change to our intercept? This is called parallel slopes, and to do this we need a bit of help from the tidyverse.
+
+## Broom and tidy models
+
+The broom package helps us create tidy regression models by *augmenting* our datasets with predictions and statistics from our regression model. The `augment()` function works much like `predict()` in base r, but is a little more user friendly when dealing with rectangular data. Let's run an *additive* model, where the effect of gender is incorporated just as a change to the intercept (parallel slopes).
+
+```{r additive model, results = "asis"}
+mod2 <- lm(Salary_9_mo ~ Avg_Cont_Grants + Gender, data = dat)
+dat_add <- augment(mod2)
+stargazer(mod1, mod2, type = "html", title = "Salary and Grants, Gender")
+```
+
+\
+
+We now have a simple additive model to compare with our initial bivariate regression. In this model, we just add or subtract around $14,000 depending on whether the respondent is male or not. Take a look as well at the coefficient for grant contribution: this fell slightly to 0.9 of a cent. The more variables we add which are positively correlated with the outcome, in general the smaller the effect size of the variables will be. Let's visualise this model, and compare it with the scatter plot above.
+
+```{r additive model scatter plot}
+ggplot(dat, aes(Avg_Cont_Grants, Salary_9_mo, group = Gender)) +
+  geom_point(alpha = 0.5, aes(colour = Gender)) +
+  geom_line(data = dat_add, aes(y = .fitted, colour = Gender)) # we change our data to the fitted values of the additive model
+```
+
+As we can see, the lines are now parallel: unlike in the first plot, their slope does not change, and thus the "effect" of gender is the same over all values of the second predictor variable (grant contribution). Now that you can intuitively see that this is the difference between an additive and an interactive model, let's finish up by comparing the regression tables.
+
+```{r three models, results = "asis"}
+mod3 <- lm(Salary_9_mo ~ Avg_Cont_Grants * Gender, data = dat)
+stargazer(mod1, mod2, mod3, type = "html", title = "Three models compared")
+```
+
+\
+
+As you can see, the third model contains an additional *interaction* term, which is the effect of gender (in this case, being male) on every additional dollar of grant won. In this case, the interaction term is negative, which (having seen the earlier scatter plot) we now know how to interpret: the effect, in terms of salary, of winning grant contributions, is lower for men than for women. This is the different slopes we saw in the first scatter plot. However, going back to that first scatter plot, we can also see that there are very few data points among high earners which are female, therefore the error bars grow wider to the right of the plot. Indeed, they overlap with the male line. This is the intuitive interpretation of the fact that, in the regression table, the interaction term (Avg_Cont_Grants:GenderM) is *not* statistically significant. Therefore in this case, we would be better off sticking with a "simple" additive model for purposes of estimation. What about for purposes of prediction?
+
+Before we close here, I'll add some additional code to give the error bars for the additive plot, and compare both scatter plots side by side. It also shows how the `augment()` function we used earlier from the `broom()` package can be use to provide confidence interval data. (Note: our error bars for gender = female are actually a bit wider this way than using ggplot. This is likely due to a difference in weighting for extreme data.)
+
+```{r comparing plots}
+dat_add <- augment(mod2, interval = "confidence")
+
+ggplot(dat, aes(Avg_Cont_Grants, Salary_9_mo, group = Gender)) +
+  geom_point(alpha = 0.5, aes(colour = Gender)) +
+  geom_line(data = dat_add, aes(y = .fitted, colour = Gender)) +
+  geom_ribbon(data = dat_add, 
+              aes(ymin=.lower, ymax=.upper), alpha=0.2)
+
+dat_int <- augment(mod3, interval = "confidence")
+
+ggplot(dat, aes(Avg_Cont_Grants, Salary_9_mo, group = Gender)) +
+  geom_point(alpha = 0.5, aes(colour = Gender)) +
+  geom_line(data = dat_int, aes(y = .fitted, colour = Gender)) +
+  geom_ribbon(data = dat_int, 
+              aes(ymin=.lower, ymax=.upper), alpha=0.2)
+
+
+```
+
+\
+
+### Summary
+
+For now, the difference between additive and interaction terms isn't of primary importance (for avoidance of doubt, in assignments only run an interaction term if you are *specifically* asked to). However, being able to visualise the difference between additive and interaction terms can help you develop your intuition about what is going on in a multiple linear regression model, which can otherwise be difficult to interpret.
+
+For your own modelling, the code here is intended to give you a head start in terms of running your own models, comparing them, and visualising the results. Use the `lm()` function to run a regression model, then the `augment()` (or `predict()`) functions to get predicted results and other data from those models, and `stargazer()` to produce nicely formatted output, allowing you to interpret the models. 
+
+As a final thing to think about, today we were able to visualise the effect of two predictor variables on an outcome, because one of our predictor variables was a dummy variable. What would we do if our other predictor variable were also a continuous variable? Or with more than two predictor variables? Something to think about for the coming weeks.
+
+## Today's Workflow
+
+For the remainder of today's class, work with your team in developing MLR models that predict house prices. For now, stick to additive models. Make sure that the dataset you work on is `train.rds`, a reduced version of last week's dataset. You can read in `trains.rds` using the `readRDS()` function. Remember to assign the function to a variable. 
+
+1. Try different models.
+2. Produce nicely formatted regression tables to compare them.
+3. Upload the results of your best model(s) to the discussion board on Blackboard by 14:40.
