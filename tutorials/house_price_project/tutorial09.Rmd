@@ -1,0 +1,186 @@
+---
+title: "Tutorial Guide for Stats I Wk 9"
+author: "Martyn Egan"
+date: "2022-11-16"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(broom)
+library(stargazer)
+```
+
+## This Week's Class
+Bad news. The King County Assessor has looked at our early models, and he realised the dataset he gave us contained two variables that shouldn't be in there: `LandVal` and `ImpsVal`. Both of these relate to the value of the property, and the Assessor wants to build a model that relies only on the physical and geographical characteristics of houses. Back to the drawing board!
+
+As we've discovered in the past couple of weeks, several of the variables in our dataset contain potentially useful data, but issues regarding the coding of the data and the distribution of the variables makes using them difficult. In this week's class we're going to see if we can transform some of those variables to make them more useful for our models.
+
+## Learning Outcomes
+
+Today's learning outcomes focus on data transformation for modelling. By the end of class you should be able to:
+
+1. Understand the different ways R handles categorical and interval variables in linear models.
+2. Decide which format is best for your own model.
+3. Carry out transformations of specific variables to improve interpretability or prediction.
+
+## Data Transformation for MLR
+
+We looked last week at a dataset of academic salaries, and we compared how our outcome, salary, varied according to the amount of external funding won and gender. We saw that there were two ways we could include gender in our model: as either an additive effect (parallel slopes), in which the effect of gender was the same across different values of our second independent variable (grants); or as an interaction term, in which the effect of gender was allowed to vary across the range of grants, according to an additional slope coefficient (our interaction term).
+
+That example hopefully demonstrated how building a regression model is not quite as simple as selecting our variables. We need to think quite carefully about how we're adding them to our model.
+
+### Categories or Quantities?
+
+In that spirit, today we're going to look at different ways of adding the same variable to a regression model. In last week's academic salaries dataset there was an additional variable which we didn't analyse - `Rank_Code`. 
+
+```{r rank code}
+dat <- readRDS("data/example.rds")
+with(dat, boxplot(Salary_9_mo ~ Rank_Code))
+```
+
+We can see from the boxplot that rank has a large effect on average salary - but how large? Let's try to model it.
+
+```{r rank code model, results="asis"}
+mod1 <- lm(Salary_9_mo ~ Avg_Cont_Grants + Rank_Code, data = dat)
+stargazer(mod1, type = "html")
+```
+\
+
+We can see by comparing the two models that the effect of `Rank_Code` is perhaps not best modelled as a constant. Let's visualise this new model to see the difference intuitively.
+
+```{r rank code vis}
+mod1_aug <- augment(mod1)
+
+ggplot(dat, aes(Avg_Cont_Grants, Salary_9_mo)) +
+  geom_point(aes(colour = as.factor(Rank_Code))) +
+  geom_line(data = mod1_aug, aes(y = .fitted, 
+                                      linetype = as.factor(Rank_Code), 
+                                      colour = as.factor(Rank_Code))) +
+  ggtitle("Grants and Rank Code")
+
+```
+
+Take a minute to look at both this plot and the boxplot carefully. What is wrong with this picture?
+
+Sometimes interval data refer to actual quantities of things - rooms or bathrooms, for instance, in our housing dataset. Other times they refer to categories, as in our `Rank_Code` variable here. Why is this important? If our data are stored as numbers (int or dbl), then the effect of a one unit increase will be treated as a constant: this is the whole point of a linear model. This is what we see in the above plot. But this isn't the appropriate way of dealing with a *category*. 
+
+```{r factor, results = "asis"}
+mod2 <- lm(Salary_9_mo ~ Avg_Cont_Grants + as.factor(Rank_Code), data = dat)
+
+stargazer(mod1, mod2, type = "html")
+```
+\
+
+Compare the below plot with our first scatter plot.
+
+```{r factor plot}
+mod2_aug <- augment(mod2)
+
+ggplot(mod2_aug, aes(Avg_Cont_Grants, Salary_9_mo)) +
+  geom_point(aes(colour = `as.factor(Rank_Code)`)) +
+  geom_line(data = mod2_aug, aes(y = .fitted, 
+                                      linetype = `as.factor(Rank_Code)`, 
+                                      colour = `as.factor(Rank_Code)`)) +
+  ggtitle("Grants and Rank Code (the right way)")
+
+```
+
+As you can see, the distance between the lines is now different: the different levels of `Rank_Code` are being treated as categories, and not as equally spaced intervals in a scale. As a result, the difference between the lines now represents the same relationship we saw in the boxplot, in terms of the distance between the averages for each level. Always remember to check how your variables are stored, and if necessary transform numerical variables to factors using the `as.factor()` function if you want them to be treated as separate categories in your regression model.
+
+### Intervals to Categories?
+
+Are there times when we may want to convert intervals to categories? Possibly. As many of you discovered when attempting to include number of bedrooms or bathrooms in your model, if you have a skewed variable with a small number of extreme outliers, it can destabilise your model. As such, we might decide to *cut* a numerical variable into discrete categories. The `cut()` function in base R can help us do this: we must specify either the number of categories or the unique cut points to the `breaks =` argument.
+
+```{r cut function}
+range(dat$Avg_Cont_Grants)
+
+# Automatic cuts
+dat$Grant_cut <- cut(dat$Avg_Cont_Grants, 
+                     breaks = 5) 
+barplot(table(dat$Grant_cut))
+
+# Supply ranges
+dat$Grant_cut2 <- cut(dat$Avg_Cont_Grants,
+                      breaks = c(0,50000,100000,500000,1000000, max(dat$Avg_Cont_Grants)))
+barplot(table(dat$Grant_cut2))
+```
+
+The above code is an example: I would not recommend ever taking a variable such as `Avg_Cont_Grants` and cutting it, nor would I recommend cutting it into very unequal breaks. However, you may wish to experiment with transforming some of the interval variables in the house price project into categories, and seeing what effect this has on your models.
+
+### Categories to Intervals?
+
+Are there times when we may want to keep categories as interval data (or even transform a categorical variable into interval data)? We should be careful about doing this, but it can sometimes work. Let's take an example from the house price project, `BldgGrade`.
+
+```{r bldggrade}
+dat <- readRDS("data/train.rds")
+hist(dat$BldgGrade)
+sort(unique(dat$BldgGrade))
+with(dat, boxplot(AdjSalePrice ~ BldgGrade))
+```
+
+We didn't have any information about what the levels of building grade stand for, but I can tell you that 1 is a cabin, 2 is substandard, 5 is fair, 10 is very good, 12 is luxury and 13 is a mansion. As such, it could be reasonable, given the distribution of the levels of this variable and their effect on price, to treat building grade as interval data. It might lead to a slightly less accurate model, but if the goal is interpretability, modelling building grade as an interval variable will produce fewer additional terms in our model.
+
+### Ordered factors in R
+
+Something to watch out for is R's built-in data type of ordered factor. You might think, from the name, that it would be the solution to your problems. Have a look at the output below though.
+
+```{r ordered factors, results = "asis"}
+mod3 <- lm(dat$AdjSalePrice ~ as.ordered(dat$BldgGrade))
+stargazer(mod3, type = "html")
+```
+\
+
+Our first three terms here are BldgGrade.L, BldgGrade.Q and BldgGrade.C. These stand for linear, quadratic and cubic trends. As we can see, all of these are statistically significant, suggesting that the best model would incorporate all of these trends (indeed, looking at the distribution of the boxplots for building grade, we might guess that a linear relationship is not the best model). However, for now let's not get too far ahead of ourselves, and instead stick to linear relationships. Try to bear in mind how R treats ordered factors: sometimes it's better to just rearrange the levels in an unordered factor.
+
+### Many Categories
+
+A different problem is when we have many categories within a variable. A specific example of this is the `ZipCode` variable in the house price project. This contains a lot of potentially useful information about location which currently we have no way of modelling. Let's try to fix that.
+
+```{r zipcode}
+dat %>%
+  group_by(ZipCode) %>%
+  summarise(n = n()) %>%
+  arrange(desc(n)) %>%
+  ggplot(aes(as.factor(reorder(ZipCode, n)), n)) +
+    geom_col() +
+    coord_flip() +
+    xlab("Zip Code")
+```
+
+As we can see, zipcodes are not uniformly distributed in our dataset, and moreover we don't have any information regarding their geographical distribution (though we could perhaps find some...) 
+
+An alternative is to group zipcodes according to another variable. In this case we could use our outcome, `AdjSalePrice`. This might seem counterintuitive - don't we want to predict sale price? Consider though: If zipcode has an effect on `AdjSalePrice` which varies in a structured way, then creating *clusters* of certain zipcodes known to have a particular effect on sale price will provide additional predictive power to our model. Here's how we can do that using `dplyr`.
+
+```{r cluster zipcodes on price, results = "asis"}
+zip_group <- dat %>%
+  group_by(ZipCode) %>%
+  summarise(med_price = median(AdjSalePrice),
+            count = n()) %>%
+  arrange(med_price) %>%
+  mutate(cumul_count = cumsum(count),
+         ZipGroup = ntile(cumul_count, 5))
+
+dat <- dat %>%
+  left_join(select(zip_group, ZipCode, ZipGroup), by = "ZipCode")
+
+mod4 <- lm(AdjSalePrice ~ SqFtTotLiving + BldgGrade + ZipGroup, data = dat)
+
+stargazer(mod4, type = "html")
+```
+\
+
+In the code above we first group the data according to `ZipCode`. We then find the median house price for each zipcode, and also the number of observations. Next, we arrange the zipcodes in ascending order, from most to least expensive. Once we've done that, we then calculate the cumulative total of zipcodes as we go down this list, and then use the `ntile()` function to calculate 5 equal partitions, and assign a value to each zipcode according to which partition it falls under. This is our new categorical variable. To complete the operation we use the `left_join()` function to join our `zip_group` dataset back to our original dataset.
+
+Using `AdjSalePrice` is a good way of clustering our zipcodes. An even better way is to use the residuals from our existing "best" model. See if you can figure our how to do this with your own models by recycling the code above.
+
+### Other options...
+
+We'll look next week at regression diagnosis (i.e. does our model meet our assumptions in terms of the distribution of errors, outliers, etc.) Two (somewhat drastic) options when faced with data that contain a relatively small number of extreme cases is to trim (remove data above or below a certain value) or cap/floor (transform values above or below a certain value to that value).
+
+For our data I'm not sure that dropping cases is the best solution, as outliers may contain useful information; on the other hand, we're currently only using linear models, and therefore a few outliers on the right side of our data can have a big effect on our estimated coefficients. As such, you might consider filtering a few extreme cases from your predictor variables and seeing how this affects your models: try using `dplyr` functions to identify and filter outliers. We will look at extreme values in more detail next week.
+
+## Today's Workflow
+
+In your groups, try applying some of the methods listed above to predictor variables in your dataset. In particular, try using the method above to transform `ZipCode` into a usable categorical variable. As usual, post your results on the discussion board by 14:40, and we will spend the last ten minutes of class going through them.
