@@ -561,11 +561,6 @@ F Statistic
 </td>
 </tr>
 </table>
-<p><br />
-</p>
-<p>We can see by comparing the two models that the effect of
-<code>Rank_Code</code> is perhaps not best modelled as a constant. Let’s
-visualise this new model to see the difference intuitively.</p>
 <pre class="r"><code>mod1_aug &lt;- augment(mod1)
 
 ggplot(dat, aes(Avg_Cont_Grants, Salary_9_mo)) +
@@ -841,7 +836,10 @@ F Statistic
 </table>
 <p><br />
 </p>
-<p>Compare the below plot with our first scatter plot.</p>
+<p>We can see by comparing the two models that the effect of
+<code>Rank_Code</code> is perhaps not best modelled as a constant. Let’s
+visualise this new model to see the difference intuitively. Compare the
+below plot with our first scatter plot.</p>
 <pre class="r"><code>mod2_aug &lt;- augment(mod2)
 
 ggplot(mod2_aug, aes(Avg_Cont_Grants, Salary_9_mo)) +

@@ -46,9 +46,7 @@ We can see from the boxplot that rank has a large effect on average salary - but
 mod1 <- lm(Salary_9_mo ~ Avg_Cont_Grants + Rank_Code, data = dat)
 stargazer(mod1, type = "html")
 ```
-\
 
-We can see by comparing the two models that the effect of `Rank_Code` is perhaps not best modelled as a constant. Let's visualise this new model to see the difference intuitively.
 
 ```{r rank code vis}
 mod1_aug <- augment(mod1)
@@ -73,7 +71,7 @@ stargazer(mod1, mod2, type = "html")
 ```
 \
 
-Compare the below plot with our first scatter plot.
+We can see by comparing the two models that the effect of `Rank_Code` is perhaps not best modelled as a constant. Let's visualise this new model to see the difference intuitively. Compare the below plot with our first scatter plot.
 
 ```{r factor plot}
 mod2_aug <- augment(mod2)
