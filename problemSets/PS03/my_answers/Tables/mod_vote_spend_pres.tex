@@ -1,33 +1,37 @@
 
 % Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy Institute. E-mail: marek.hlavac at gmail.com
-% Date and time: Mon, Nov 07, 2022 - 21:40:24
+% Date and time: Thu, Nov 17, 2022 - 14:31:11
 \begin{table}[!htbp] \centering 
   \caption{Vote share as a function of Presidential vote share and differential spending} 
   \label{tab:vote_spend_pres} 
-\begin{tabular}{@{\extracolsep{5pt}}lc} 
+\begin{tabular}{@{\extracolsep{5pt}}lcc} 
 \\[-1.8ex]\hline 
 \hline \\[-1.8ex] 
- & \multicolumn{1}{c}{\textit{Dependent variable:}} \\ 
-\cline{2-2} 
-\\[-1.8ex] & voteshare \\ 
+ & \multicolumn{2}{c}{\textit{Dependent variable:}} \\ 
+\cline{2-3} 
+\\[-1.8ex] & voteshare & resid\_vote\_spend \\ 
+\\[-1.8ex] & (1) & (2)\\ 
 \hline \\[-1.8ex] 
- difflog & 0.035543$^{***}$ \\ 
-  & (0.000946) \\ 
-  & \\ 
- presvote & 0.256877$^{***}$ \\ 
-  & (0.011764) \\ 
-  & \\ 
- Constant & 0.448644$^{***}$ \\ 
-  & (0.006330) \\ 
-  & \\ 
+ presvote & 0.256877$^{***}$ &  \\ 
+  & (0.011764) &  \\ 
+  & & \\ 
+ difflog & 0.035543$^{***}$ &  \\ 
+  & (0.000946) &  \\ 
+  & & \\ 
+ resid\_pres\_spend &  & 0.256877$^{***}$ \\ 
+  &  & (0.011762) \\ 
+  & & \\ 
+ Constant & 0.448644$^{***}$ & $-$0.000000 \\ 
+  & (0.006330) & (0.001299) \\ 
+  & & \\ 
 \hline \\[-1.8ex] 
-Observations & 3,193 \\ 
-R$^{2}$ & 0.449610 \\ 
-Adjusted R$^{2}$ & 0.449265 \\ 
-Residual Std. Error & 0.073391 (df = 3190) \\ 
-F Statistic & 1,302.947000$^{***}$ (df = 2; 3190) \\ 
+Observations & 3,193 & 3,193 \\ 
+R$^{2}$ & 0.449610 & 0.130038 \\ 
+Adjusted R$^{2}$ & 0.449265 & 0.129765 \\ 
+Residual Std. Error & 0.073391 (df = 3190) & 0.073380 (df = 3191) \\ 
+F Statistic & 1,302.947000$^{***}$ (df = 2; 3190) & 476.974700$^{***}$ (df = 1; 3191) \\ 
 \hline 
 \hline \\[-1.8ex] 
-\textit{Note:}  & \multicolumn{1}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\ 
+\textit{Note:}  & \multicolumn{2}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\ 
 \end{tabular} 
 \end{table}  
