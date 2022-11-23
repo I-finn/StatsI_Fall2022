@@ -1,0 +1,194 @@
+---
+title: "Tutorial Guide for Stats I wk 10"
+author: "Martyn Egan"
+date: "2022-11-23"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(broom)
+library(stargazer)
+library(plotly)
+library(car)
+```
+
+## Recap and Today's Class
+
+Last week we worked on our data transformation skills to figure out a way of adding location to our model, clustering our zipcode data by the residuals from our previous model.
+
+It was important to find a way of including location in our model, as without it our model coefficients could encourage invalid conclusions. Compare the two models below, with and without zipcode.
+
+```{r confounding variable, results = "asis"}
+dat <- readRDS("data/train.rds")
+
+mod1 <- lm(AdjSalePrice ~ SqFtTotLiving + SqFtLot + Bathrooms + Bedrooms + BldgGrade + PropertyType, data = dat)
+dat <- cbind(dat, residuals = resid(mod1))
+
+zip_group_res <- dat %>%
+  group_by(ZipCode) %>%
+  summarise(med_price = median(residuals),
+            count = n()) %>%
+  arrange(med_price) %>%
+  mutate(cumul_count = cumsum(count),
+         ZipGroup_r = ntile(cumul_count, 5))
+dat <- dat %>%
+  left_join(select(zip_group_res, ZipCode, ZipGroup_r), by = "ZipCode")
+
+mod2 <- lm(AdjSalePrice ~ SqFtTotLiving + SqFtLot + Bathrooms + Bedrooms + BldgGrade + PropertyType + as.factor(ZipGroup_r), data = dat)
+
+stargazer(mod1, mod2, type = "html")
+```
+
+\
+
+We can see that in the second model, the sign of `SqFtLot` and `Bathrooms` has switched from negative to positive. Location is an example of a *confounding* variable: it has a substantial effect on price, and when we leave it out it can cause our other variables to assume strange coefficients.
+
+Confounding variables present a similar kind of problem to the one we encountered two weeks ago when dealing just with house size and number of bedrooms/bathrooms. Then, we were faced with the problem of *correlated* predictors: we saw that when we included both size and number of bedrooms in a property, the coefficient for bedrooms became negative (as is still the case in the models above). This is because larger houses often have more bedrooms, and it is the size of the house which drives the price, not the number of bedrooms. If you consider two houses of the same size, the one with more bedrooms is likely to be less valuable, as more rooms are being squashed into the same space. This is what the negative coefficient for bedrooms is telling us.
+
+As we add more variables to our model, the interpretation of the model can become more complex, and our ability to intuitively grasp what is going on inside the model becomes harder. This week, we will look at a few ways of visualising more complex models, using this information to diagnose issues in these models, and possible ways of resolving them.
+
+## Learning Outcomes
+
+Today I'll show you a few different things: don't worry about using all of them in the housing project, the goal is to round out your skillset, and provide you with some tools for the future. We'll look at: 
+
+- how to visualise more than two continuous variables;
+- how partial residual plots can help us hone our models;
+- adding quadratic terms to our models;
+- finding outliers.
+
+## Regression Diagnosis
+
+A few of you ended up last week's class with visualisations looking a little like this:
+
+```{r ggplot 3 var}
+ggplot(dat, aes(SqFtTotLiving, AdjSalePrice, group = ZipGroup_r)) +
+  geom_point(aes(colour = ZipGroup_r)) +
+  geom_smooth(method = "lm", aes(colour = ZipGroup_r))
+```
+
+A common problem when we have more than two continuous variables is how to visualise our model. In the plot above, `ZipGroup_r` - our zipgroup clustering based on residuals - is added as a continuous variable, and what we're seeing when `ggplot` tries to add zipgroup to the model is a sort of two-dimensional rendering of a 3D plane.
+
+```{r plotly visualisation}
+plot_ly(data = dat, z = ~AdjSalePrice, x = ~SqFtTotLiving, y = ~ZipGroup_r, 
+        color = ~as.factor(ZipGroup_r))
+```
+
+Here's a slightly better visualisation using the `plotly` package. We can add a regression plane to this plot, but the process is a little complex. If you're interested, this [stack overflow](https://stackoverflow.com/questions/38331198/add-regression-plane-to-3d-scatter-plot-in-plotly) page contains the code. Packages like `plot_ly` can be useful for data communication, but they require a html file to render, and can be a bit gimmicky. Use them with care.
+
+What if we have more than three dimensions though? We'll need to take a different approach.
+
+### Partial Regression and Partial Residual Plots
+
+When dealing with higher dimensions, we need to start thinking in terms of our model as a whole. There are a couple of ways of plotting which allow us to see the partial effects of specific predictor variables, *taking into effect all other predictor variables*. One of these is a **partial regression** plot. 
+
+We used *residuals*, i.e. the bits left over from our model's prediction, to create our zipcode cluster last week. Residuals can help us to see in which ranges of our data our model is good at predicting, and which areas it isn't. 
+
+Let's see what I mean with a quick residual plot of a bivariate regression of property size and sale price.
+
+```{r bivar residual plot}
+mod3 <- lm(AdjSalePrice ~ SqFtTotLiving, data = dat) # bivariate regression model
+
+scatter.smooth(dat$SqFtTotLiving, resid(mod3), # plot a smooth line on the scatter plot
+               lpars = list(col = "blue", lwd = 3, lty = 3), 
+               main = "Residual Plot (Sale Price ~ Size)",
+               xlab = "Total Living Area (sq.ft.)",
+               ylab = "Residuals")
+abline(h = 0, col = "red") # plot a horizontal line through zero
+```
+
+Here, I've added a smooth line through the residuals to see where my residuals are, on average, above or below my regression line. Take a look at the plot, and see if you can work out where the model is over and under-predicting.
+
+When we extend our model to multiple variables, we can use residuals to visualise the effect of one predictor variable against our outcome variable, *taking into account* our other predictor variables - i.e., holding their effect constant. A **partial regression plot** (sometimes also called an added variable plot) uses residuals to *partial out* the effects of other variables, allowing us to see something a bit like a bivariate scatter plot. The `car` package allows us to create added variable plots.
+
+```{r added variable plot}
+par(mfrow = c(1,1))
+avPlot(mod2, variable = "SqFtTotLiving")
+avPlot(mod2, variable = "BldgGrade")
+```
+
+With a partial regression plot, the slope of the line is always the same as the coefficient of the predictor variable within the overall regression model; the intercept is always zero (these are residuals we're plotting!)
+
+Partial regression plots help us to see extreme points, and to determine whether our residuals are evenly distributed across the range of our predictor variable - basically, we can interpret them similar to the bivariate residual plot we already encountered.
+
+A disadvantage of partial regression plots is that, unlike in our bivariate residual plots, the x-axis no longer shows us the original value of our predictor variable, but rather the residuals. 
+
+By contrast, **partial residual plots** keep the x axis in terms of the original predictor variable,  while on the y axis they plot the residual from the full regression combined with the predicted value from the single predictor. The result is an estimate of the single predictor's contribution to the outcome. 
+
+Let's see an example using property size as the predictor variable.
+
+```{r partial residual plot}
+terms <- predict(mod2, type = "terms") # extract the individual regression terms from our model for each observation
+
+partial_resid <- resid(mod2) + terms # add the individual regression terms to the residual for each observation
+
+df <- data.frame(SqFtTotLiving = dat[, "SqFtTotLiving"], # create a new data.frame of these vals
+                 Terms = terms[, "SqFtTotLiving"],
+                 PartialResid = partial_resid[, "SqFtTotLiving"])
+
+ggplot(df, aes(SqFtTotLiving, PartialResid)) +
+  geom_point(alpha = 0.2) +
+  geom_smooth() +
+  geom_line(aes(SqFtTotLiving, Terms), colour = "red")
+```
+
+Our partial residual plot is an estimate of the contribution that `SqFtTotLiving` adds to the sales price, taking into account our other predictors. What's the advantage of a partial residual plot compared to a partial regression plot? Here, we can see that our fitted line (in red) isn't doing a great job compared with the smooth line that `ggplot` adds. It underestimates the value of small properties, overestimates mid-sized properties, and underestimates very large properties. This suggests we may need to use a non-linear term to model the relationship between `AdjSalePrice` and `SqFtTotLiving`. We can't really see this as clearly in the partial regression plot.
+
+### Adding a Polynomial Term
+
+Using a partial residual plot has shown us that the way we are adding `SqFtTotLiving` to our model may not be the optimal solution. In fact, it looks like a simple non-linear relationship - a quadratic polynomial in the form $x^2$ - might give us a better fitting line. Here's one way of doing that in R (note that we **must** add the original term separately).
+
+```{r polynomial, results="asis"}
+mod4 <- lm(AdjSalePrice ~ SqFtTotLiving + I(SqFtTotLiving^2) + SqFtLot + Bathrooms + Bedrooms + BldgGrade + PropertyType + as.factor(ZipGroup_r), data = dat)
+
+stargazer(mod1, mod2, mod4, type = "html")
+```
+
+\
+
+And plotting the new regression line:
+
+```{r polynomial plot}
+terms_poly <- predict(mod4, type = "terms") # extract the individual regression terms from our model for each observation
+
+partial_resid_poly <- resid(mod4) + terms_poly # add the individual regression terms to the residual for each observation
+
+df_poly <- data.frame(SqFtTotLiving = dat[, "SqFtTotLiving"], # create a new data.frame of these vals
+                 Terms = terms_poly[, "I(SqFtTotLiving^2)"],
+                 PartialResid = partial_resid_poly[, "I(SqFtTotLiving^2)"])
+
+ggplot(df_poly, aes(SqFtTotLiving, PartialResid)) +
+  geom_point(alpha = 0.2) +
+  geom_smooth() +
+  geom_line(aes(SqFtTotLiving, Terms), colour = "red")
+```
+
+As we can see from our new partial residual plot, adding the polynomial term brings our fitted line much closer to the `ggplot` smooth line. We've also improved our $R^2$ to 0.69, and reduced our residual standard error by almost another twenty thousand dollars. 
+
+### Outliers
+
+Partial regression and partial residual plots can be hard to wrap your head around. Try to think of them as aids to interpretation and diagnosis. Another handy tool is R's built in `plot()` function: when you run this on an `lm` object, it will give you some useful diagnosis plots to help you check for outliers and non-normality. Check the following code -
+
+```{r using base r plot}
+par(mfrow = c(2, 2)) # we change the graphic device to show 4 plots at once
+plot(mod4) # we supply our lm object to plot()
+```
+
+It's important to set the `mfrow = c(2,2)` argument to the `par()` function when plotting `lm` objects, otherwise you'll only get the first plot. These plots give a lot of information, some of which can be hard to interpret, but they can be useful in particular for identifying outliers. Outliers are extreme values in our data which can cause problems with our regression models. Sometimes they're a result of incorrect data entry, sometimes there's something else different about them which our available data doesn't capture. Either way, we may consider dropping some outliers from our data if they are having an extreme effect.
+
+Another way to detect outliers is by examining *standardised residuals* (the residual divided by the standard error of the residuals). We can do this in R as follows:
+
+```{r standardised residuals}
+sresid <- rstandard(mod4) # the rstandard() function extracts standardised residuals
+index <- order(sresid) # make an index of standardised residuals
+dat[index[1:5], c("AdjSalePrice", "SqFtTotLiving", "SqFtLot", "Bathrooms", "Bedrooms", "BldgGrade")]
+```
+
+## Today's (and next week's) Workflow
+
+We only have today and half of next week's class to round off the house price project, so we'll need to focus on creating a final model and preparing a presentation to the King County Assessor explaining what that model does and why it is the best. You'll need to work effectively as a team to get all this done in time, so take a minute or two before you start work to delegate tasks.
+
+The remaining work plan is as follows. By the end of today's class, you'll need to fill out the `model_template.R` script, located in the github `code` directory, with your team's final model: it should include any code for data transformation, as well as code for running the regression itself. You should upload your completed file to the discussion board on Blackboard by the end of today's class at 14:50. I'll then run your scripts myself on the test set, and reveal the results at the end of next week's class.
+
+As well as the final model, you also need to have your presentations ready by half-way through next week's class (14:00), so that we have time for presentations. Recall that you need to explain and justify your final model selection in a 5 minute presentation, which should include a short handout (to be shown on screen) of no more than two sides of A4. Remember: your handout and your presentation are both data communication operations, so your visualisations should be informative and understandable. Good luck!

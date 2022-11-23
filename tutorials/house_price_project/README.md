@@ -7,3 +7,5 @@ Go to the <a rel="guide" href="https://asds-tcd.github.io/StatsI_Fall2022/tutori
 Go to the <a rel="guide" href="https://asds-tcd.github.io/StatsI_Fall2022/tutorials/house_price_project/tutorial08.html">guide</a> for tutorial 8.
 
 Go to the <a rel="guide" href="https://asds-tcd.github.io/StatsI_Fall2022/tutorials/house_price_project/tutorial09.html">guide</a> for tutorial 9.
+
+Go to the <a rel="guide" href="https://asds-tcd.github.io/StatsI_Fall2022/tutorials/house_price_project/tutorial10.html">guide</a> for tutorial 10.
