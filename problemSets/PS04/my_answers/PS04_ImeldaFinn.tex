@@ -110,12 +110,12 @@ help(Prestige)
 
 	 \lstinputlisting[language=R, firstline=162, lastline=163]{PS04_ImeldaFinn.R}
 
-	  The results are in Table~\ref{tab:pres_inc_prof}.    The $pvalue$ for $\beta_3$ is $8.831093\times 10^{-05}$, so we reject the hypothesis that the two variables do not interact, ie we conclude that a change in income does not have the same effect on prestige for professionals and non-professionals (see Figure~\ref{fig:pres_inc_prof}).
+	  The results are in Table~\ref{tab:pres_inc_prof}.    The $pvalue$ for $\beta_3$ is $8.831093\times 10^{-05}$, so we reject the hypothesis that the two variables do not interact, ie we conclude that a person's income level is not associated with the same level of prestige for professionals and non-professionals (see Figure~\ref{fig:pres_inc_prof}).
 	  
 	  \include{Tables/prestige_model.tex}
 	    \begin{figure}
 		    \includegraphics[width=0.9\textwidth]{Graphics/prestige_interaction.png}
-		    \caption{Prestige as a function of income, professional job type and their interaction}
+		    \caption{Prestige values for professionals/not as a function of income}
 		    \label{fig:pres_inc_prof}
 	    \end{figure}
 
@@ -144,14 +144,15 @@ https://imaging.mrc-cbu.cam.ac.uk/statswiki/FAQ/contint?action=AttachFile&do=get
 	\item [(d)] 	%Interpret 
 	The coefficient for \texttt{income} is $\beta_1 +\delta_2 z = 0.003171 -0.002326\times professional$ 
 	
-	Assuming professional status is constant, a \$1 rise in \texttt{income} results in a predicted rise in prestige of 0.003171 if in a blue collar or white collar job; prestige rises by 0.000845 per \$ (ie 0.003171-0.002326) if in a professional job.
+	Assuming professional status is constant, a \$1 rise in \texttt{income} results in a predicted rise in \texttt{prestige} of 0.003171 if in a blue collar or white collar job; \texttt{prestige} rises by 0.000845 per \$ (ie 0.003171-0.002326) if in a professional job.    The relationship of prestige with \texttt{income}, and the interaction between income and \texttt{professional}, are both statistically significant (at 0.1\%).  As per Figure~\ref{fig:pres_inc_prof}, the \texttt{prestige} score for a person in a professional job starts at a higher value, for a 0 \texttt{income}, but the slope of the line predicting \texttt{prestige} is less steep, as increase in their \texttt{income} has less effect.
 	
 	\item [(e)] %Interpret the coefficient for \texttt{professional}. 
 	The coefficient for \texttt{professional} is $\delta_1  + \delta_2 x =  37.78128-0.002326\times income$
 	
   If \texttt{professional} switches to $1$ (ie \texttt{type = prof}) then \texttt{prestige} increases by 37.78128 -0.002326$\times$ \texttt{income}, if \texttt{income} is held constant.
-  If \texttt{professional} changes to $1$ and \texttt{income} changes, the change in prestige is 37.78128 - 0.002326 $\times$ old income + 0.000845 $\times$ change in \texttt{income}.
+  If \texttt{professional} changes to $1$ and \texttt{income} changes, the change in prestige is 37.78128 - 0.002326 $\times$ old income + 0.000845 $\times$ change in \texttt{income}.    The relationships between \texttt{prestige} and \texttt{income} and the interaction between \texttt{income} and \texttt{professional} are both statistically reliable (at 0.1\%).  \footnote{Hypothetically, a professional job would have more prestige for incomes below c\$16,250 and less prestige for incomes above that level, as this is where the increase in the intersection value is wiped out by the decrease in the income coefficient.  This that can't be supported by the current data, as the maximum income for any non-professional worker is \$8,895 (fireworker).}
 	
+
 	\item [(f)]
 %	What is the effect of a \$1,000 increase in income on prestige score for professional occupations? In other words, we are interested in the marginal effect of income when the variable \texttt{professional} takes the value of $1$. Calculate the change in $\hat{y}$ associated with a \$1,000 increase in income based on your answer for (c).
 	
@@ -170,7 +171,7 @@ https://imaging.mrc-cbu.cam.ac.uk/statswiki/FAQ/contint?action=AttachFile&do=get
   \[\hat{y_0} = (\beta_0) + (\beta_1) x = 21.14226 + 0.003171\times 6000 = 40.16826\]
 	
 	when \texttt{professional} $z_1$ is 1, \texttt{prestige} is:
-  \[\hat{y}_1  = (\beta_0 + \delta_1) + (\beta_1 +\delta_2) x z_1 \]
+  \[\hat{y}_1  = (\beta_0 + \delta_1\times 1) + (\beta_1 +\delta_2\times 1) x  \]
       
       \[= (21.14226 + 37.78128) + (0.003171-0.002326)*6000 = 63.99354  \]
 	
@@ -210,17 +211,25 @@ a precinct that was adjacent to a precinct in the treatment group (since people 
 	\footnotesize{\textit{Notes:} $R^2$=0.094, N=131}
 \end{table}
 
+  \lstinputlisting[language=R, firstline=415, lastline=418]{PS04_ImeldaFinn.R}
+
+  \begin{comment}
   \begin{lstlisting}
   n <- 131
   est_coeffs <- 3
   df <- n - est_coeffs
   R2 <- 0.094
   \end{lstlisting}
+  \end{comment}
+
 
 %\vspace{.5cm}
 \begin{enumerate}
 	\item [(a)] To determine whether having these yard signs in a precinct affects vote share we conduct a hypothesis test with $\alpha = .05$.  The null hypothesis is that having yard signs in a precinct have no effect on the voting in that precinct, ie $H_0: \beta_1 = 0, H_{alt}: \beta_1 \ne 0$.  
 
+  \lstinputlisting[language=R, firstline=430, lastline=435]{PS04_ImeldaFinn.R}
+
+  \begin{comment}
   \begin{lstlisting}
     beta1 <- 0.042
     n1 <- 30
@@ -229,17 +238,23 @@ a precinct that was adjacent to a precinct in the treatment group (since people 
     t_precinct <- beta1 / se1
     pval_precinct <- 2*pt(abs(t_precinct), df, lower.tail=FALSE)
   \end{lstlisting}
+  \end{comment}
   
 	$tvalue =  0.042/0.016 = 2.625$
 	
 	$pvalue =  Pr(tvalue = 2.625, df = 128) = 0.00972002$
 	
-  $pvalue < \alpha$, so we reject the null hypothesis and conclude that the presence of signs in yards in a precinct is associated with an average increase in vote for Cuccinelli of 4.2\% in that precinct.
+  Our $pvalue = 0.97\% < \alpha$, so we reject the null hypothesis and conclude that there is a 
+  positive and statistically significant relationship between the presence of signs in yards in a precinct and vote share.  Specifically, having yard signs attacking his opponent in a precinct is associated with an increase in Ken Cuccinelli's vote share in that precinct of 0.042 (ie + 4.2\%).
+  
 
 	\item [(b)]  To determine whether being
 	next to precincts with these yard signs affects vote
 	share we conduct a hypothesis test with $\alpha = .05$. The null hypothesis is that having yard signs in a precinct have no effect on the voting in the adjacent precincta, ie $H_0: \beta_2 = 0, H_{alt}: \beta_2 \ne 0$. 
 	
+  \lstinputlisting[language=R, firstline=446, lastline=451]{PS04_ImeldaFinn.R}
+
+  \begin{comment}
   \begin{lstlisting}
     n2 <- 76
     beta2 <- 0.042
@@ -248,19 +263,23 @@ a precinct that was adjacent to a precinct in the treatment group (since people 
     t_adj <- beta2 / se2
     pval_adj <- 2*pt(abs(t_adj), df, lower.tail = FALSE)
   \end{lstlisting}
+  \end{comment}
 
 	$tvalue =  0.042/0.013 = 3.230769$
 	
 	$pvalue = 0.00156946$
 	
-  $pvalue < \alpha$, so we reject the null hypothesis and conclude that the presence of signs in yards in a precinct is associated with an average increase in vote for Cuccinelli of 4.2\% in the adjacent precincts.	
+  Our $pvalue = 0.16\% < \alpha$, so we reject the null hypothesis and conclude that the presence of signs in yards in a precinct is supportive  of the alternative, non-zero, hypothesis.  A positive and statistically reliable relationship exists between the presence of yard signs in a precinct, and an increase in Cuccinelli's vote share in the adjacent precincts.	 The associated increase is 0.042 (4.2\% ).
+     
+     %“There is a positive and statistically reliable relationship between the amount of spending between the incumbent and challenger and the incumbent’s vote share, such that a one unit increase in the logged difference in spending is associated with an average increase of 0.04 in the incumbent’s vote share (4%) 
+
   
 	\item [(c)] %Interpret the coefficient for the constant term substantively.
-	If not in a precinct with yard signs and not in an adjacent precinct, Cuccinelli averages 30.2\% of the vote.
-	
-	At the 95\% confidence level, the vote for Cuccinelli in a precinct which is considered
-	to be unaffected by signs is between  28.02\% and 32.38\%. 
+	If not in a precinct with yard signs and not in an adjacent precinct, Ken Cuccinelli averages 30.2\% of the vote.  	At the 95\% confidence level, the vote for Cuccinelli in a precinct which is considered  to be unaffected by signs is between  28.02\% and 32.38\%. 
 
+  \lstinputlisting[language=R, firstline=462, lastline=468]{PS04_ImeldaFinn.R}
+
+  \begin{comment}
 	\begin{lstlisting}
     beta0 <- 0.302
     se0 <- 0.011
@@ -270,6 +289,7 @@ a precinct that was adjacent to a precinct in the treatment group (since people 
     CI0_L <- beta0 - tscore*se0
     CI0_U <- beta0 + tscore*se0
 	\end{lstlisting}
+  \end{comment}
     
   t-statistic for two-sided test with $\alpha = 0.95\%$, 128 degrees of freedom = 1.978671
 
@@ -285,12 +305,12 @@ a precinct that was adjacent to a precinct in the treatment group (since people 
   \item X is unrelated to e
   \end{itemize}
 \end{comment}
-  If the assumptions are valid, the presence of yard signs (even if they don't mention the candidate or their party) can predict an increase in votes of 4.2\%\footnote{CI $\beta_1$: 1.03\% to 7.37\%;  CI $\beta_2$: 1.63\% to 6.77\%, at 95\%}.  That could be the difference between winning an losing a close election, so the signs would be worth the cost, particularly as they increased vote share in 106 precincts, even though they were only placed in 30.
+  If the model assumptions are valid, the presence of yard signs (even if they don't mention the candidate or their party) can predict an increase in votes of 4.2\%\footnote{CI $\beta_1$: 1.03\% to 7.37\%;  CI $\beta_2$: 1.63\% to 6.77\%, at 95\%}.  That could be the difference between winning an losing a close election, so the signs would be worth the cost, particularly as they increased vote share in 106 precincts, even though they were only placed in 30.
 
-The model's value is based on the test being set up with a effectively random/representative assignment of yard signs (it couldn't be actually random, or there would have been precincts with yard signs adjacent to each other).  This assumes precincts are homogeneous with regard to party affiliation, voter turnout, through traffic, size (affecting proportion of voters who would have seen the signs), etc.
+The model requires a linear relationship between the predictors and the independent variable (vote share), the independence of the predictors and equal variance of the residuals. 
 
-The model assumes predictors are independent, ie that the vote share in the adjacent precincts is not being affected by some other characteristic based on proximity to the areas with yard signs, and that the change in vote share is not due to a confounding variable which affects the sign and adjacent precincts, but which is not being modelled.
-
+The model is assumed to have an effectively random/representative assignment of yard signs (it couldn't be actually random, or there would have been precincts with yard signs adjacent to each other).  This assumption could fail if precincts are heterogeneous with regard to party affiliation, voter turnout, through traffic, size (affecting proportion of voters who would have seen the signs), etc.
+The model assumes predictors are independent of each other, ie that the vote share in the adjacent precincts is not being affected by some other characteristic based on proximity to the areas with yard signs, and that the change in vote share is not due to a confounding variable which affects the sign and adjacent precincts, but which is not being modelled.
 
   However, the $R^2$ value is 0.094, ie only 9.4\% of the variation in the dependent variable can be explained by the yard sign model.  Most of the variation in vote share results from factors which are not modelled.  If those missing variables were accounted for they could change both the values and the significance of the coefficients.   Alternatively, the relationship between the dependent variable (vote share) and the predictors (yard signs) may not be linear, and an alternative model, with the same predictors, might be appropriate.
 

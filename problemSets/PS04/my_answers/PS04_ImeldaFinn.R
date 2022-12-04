@@ -197,6 +197,8 @@ output_stargazer("Tables/prestige_nas.tex",
 )
 
 
+View(Prestige)
+
 # test for parallel lines
 # hyp 0: beta3 = 0
 plot_coefs <- pres_inc_prof$coefficients
@@ -207,6 +209,14 @@ tstat_b3 <- plot_coefs[4] / 0.0005675
 pval_b3 <- 2*pt(abs(tstat_b3), df = 102 - 4- 4, lower.tail = FALSE)
 
 #reject null - the two lines have different slopes
+
+inc <- 16250
+bwp <- plot_coefs[1] + plot_coefs[2] * inc
+pp <- plot_coefs[1] + plot_coefs[3] + (plot_coefs[2] +plot_coefs[4])* inc
+
+#"16500wc, bc 73.46 prof 72.87"
+#"16250wc, bc 72.67 prof 72.66"
+paste0(inc, "wc, bc ",round(bwp, 2)," prof ", round(pp,2))
 
 #output model
 stargazer(pres_inc_prof, pres_nas, pres_athletes, type = "text")
@@ -401,15 +411,8 @@ ggsave("./Graphics/av_ggplot.png")# only saves 2nd plot
 #Constant 0.302(0.011)
 #Notes: R2=0.094, N=131
 
+# in LaTeX 415 - 418
 n <- 131
-beta0 <- 0.302
-se0 <- 0.011
-beta1 <- 0.042
-n1 <- 30
-se1 <- 0.016
-n2 <- 76
-beta2 <- 0.042
-se2 <- 0.013
 est_coeffs <- 3
 df <- n-est_coeffs
 R2 <- 0.094
@@ -423,9 +426,13 @@ R2 <- 0.094
 #Results from four randomized field experiments." 
 #Electoral Studies 41: 143-150.
 
+# in LaTeX 430 - 435
+beta1 <- 0.042
+n1 <- 30
+se1 <- 0.016
+# get t-test value and pvalue
 t_precinct <- beta1 / se1
 pval_precinct <- 2*pt(abs(t_precinct), df , lower.tail = FALSE)
-
 
 pval_precinct # 0.00972002
 paste0(round(pval_precinct*100,2), "%")
@@ -434,6 +441,11 @@ paste0(round(pval_precinct*100,2), "%")
 #(b) Use the results to determine whether being next to 
 #precincts with these yard signs affects vote share 
 #(e.g., conduct a hypothesis test with alpha = .05).
+
+# in LaTeX 446 - 451
+n2 <- 76
+beta2 <- 0.042
+se2 <- 0.013
 
 t_adj <- beta2 / se2
 pval_adj <- 2*pt(abs(t_adj), df, lower.tail = FALSE)
@@ -446,14 +458,16 @@ pval_adj
 # precinct, Cuccinelli gets 30.2% of the vote
 
 # constant value
+# in LaTeX 462 - 468
+beta0 <- 0.302
+se0 <- 0.011
+
 tscore <- qt(0.975, df) # get tscore for df 128,
 
 CI0_L <- beta0 - tscore*se0
 CI0_U <- beta0 + tscore*se0
 #At the 95% confidence level, the vote for C in a precinct with
 # no signs and not adjacent to a precinct with signs, is between
-
-#
 paste0("CI: ",round(CI0_L*100,2), "% to ",round(CI0_U*100,2),"%." )
 
 #(d) Evaluate the model fit for this regression. 
